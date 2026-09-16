@@ -29,8 +29,7 @@ class Results extends Phaser.Scene {
             grade = 'GETTING HOT';
         }
 
-        // HEADER
-        this.add.text(width / 2, 45, 'WAFFLE HAHZ', {
+        this.add.text(width / 2, 55, 'WAFFLE HAHZ', {
             fontFamily: 'Arial Black',
             fontSize: '58px',
             color: '#ffffff',
@@ -38,25 +37,23 @@ class Results extends Phaser.Scene {
             strokeThickness: 8
         }).setOrigin(0.5);
 
-        this.add.text(width / 2, 105, 'TRAINING COMPLETE', {
+        this.add.text(width / 2, 115, 'TRAINING COMPLETE', {
             fontFamily: 'Arial Black',
             fontSize: '24px',
             color: '#ffb000'
         }).setOrigin(0.5);
 
-        // GRADE
-        this.add.text(width / 2, 160, grade, {
+        this.add.text(width / 2, 170, grade, {
             fontFamily: 'Arial Black',
             fontSize: '38px',
             color: '#ff4d1c'
         }).setOrigin(0.5);
 
-        // SCORE PANEL
         const panel = this.add.rectangle(
             width / 2,
-            295,
+            305,
             620,
-            210,
+            220,
             20
         );
 
@@ -64,13 +61,13 @@ class Results extends Phaser.Scene {
             .setFillStyle(0x1d1d1d)
             .setStrokeStyle(3, 0xffb000);
 
-        this.add.text(width / 2, 220, 'FINAL SCORE', {
+        this.add.text(width / 2, 230, 'FINAL SCORE', {
             fontFamily: 'Arial Black',
             fontSize: '18px',
             color: '#999999'
         }).setOrigin(0.5);
 
-        this.add.text(width / 2, 260, score.toLocaleString(), {
+        this.add.text(width / 2, 270, score.toLocaleString(), {
             fontFamily: 'Arial Black',
             fontSize: '50px',
             color: '#ffffff'
@@ -78,7 +75,7 @@ class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2,
-            330,
+            345,
             `ORDERS SERVED: ${ordersServed} / ${totalOrders}`,
             {
                 fontFamily: 'Arial Black',
@@ -89,7 +86,7 @@ class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2,
-            370,
+            385,
             `FINAL COMBO: ${finalCombo}X`,
             {
                 fontFamily: 'Arial Black',
@@ -98,10 +95,9 @@ class Results extends Phaser.Scene {
             }
         ).setOrigin(0.5);
 
-        // SOCIAL PANEL
         const socialPanel = this.add.rectangle(
             width / 2,
-            485,
+            500,
             820,
             125,
             18
@@ -111,20 +107,15 @@ class Results extends Phaser.Scene {
             .setFillStyle(0x242424)
             .setStrokeStyle(3, 0xff4d1c);
 
-        this.add.text(
-            width / 2,
-            438,
-            'SHOW US YOUR SCORE',
-            {
-                fontFamily: 'Arial Black',
-                fontSize: '24px',
-                color: '#ffffff'
-            }
-        ).setOrigin(0.5);
+        this.add.text(width / 2, 455, 'SHOW US YOUR SCORE', {
+            fontFamily: 'Arial Black',
+            fontSize: '24px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
         this.add.text(
             width / 2,
-            475,
+            492,
             'Follow @WaffleHahz + post your score with #WaffleHahz',
             {
                 fontFamily: 'Arial Black',
@@ -135,7 +126,7 @@ class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2,
-            510,
+            527,
             'for a chance to win a FREE WAFFLE HAHZ MEAL!',
             {
                 fontFamily: 'Arial',
@@ -144,10 +135,9 @@ class Results extends Phaser.Scene {
             }
         ).setOrigin(0.5);
 
-        // FOLLOW BUTTON
         const followButton = this.add.rectangle(
             width / 2 - 190,
-            565,
+            590,
             330,
             58,
             14
@@ -160,7 +150,7 @@ class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2 - 190,
-            565,
+            590,
             'FOLLOW @WAFFLEHAHZ',
             {
                 fontFamily: 'Arial Black',
@@ -168,16 +158,6 @@ class Results extends Phaser.Scene {
                 color: '#ffffff'
             }
         ).setOrigin(0.5);
-
-        followButton.on('pointerover', () => {
-            followButton.setFillStyle(0x333333);
-            followButton.setScale(1.04);
-        });
-
-        followButton.on('pointerout', () => {
-            followButton.setFillStyle(0x111111);
-            followButton.setScale(1);
-        });
 
         followButton.on('pointerdown', () => {
             window.open(
@@ -187,10 +167,9 @@ class Results extends Phaser.Scene {
             );
         });
 
-        // POST SCORE BUTTON
         const postButton = this.add.rectangle(
             width / 2 + 190,
-            565,
+            590,
             330,
             58,
             14
@@ -203,7 +182,7 @@ class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2 + 190,
-            565,
+            590,
             'POST MY SCORE',
             {
                 fontFamily: 'Arial Black',
@@ -211,16 +190,6 @@ class Results extends Phaser.Scene {
                 color: '#121212'
             }
         ).setOrigin(0.5);
-
-        postButton.on('pointerover', () => {
-            postButton.setFillStyle(0xffffff);
-            postButton.setScale(1.04);
-        });
-
-        postButton.on('pointerout', () => {
-            postButton.setFillStyle(0xffb000);
-            postButton.setScale(1);
-        });
 
         postButton.on('pointerdown', () => {
             const postText = encodeURIComponent(
@@ -234,69 +203,35 @@ class Results extends Phaser.Scene {
             );
         });
 
-        // PLAY AGAIN
         const playAgain = this.add.text(
             width / 2 - 150,
-            660,
+            670,
             'PLAY AGAIN',
             {
                 fontFamily: 'Arial Black',
                 fontSize: '18px',
                 color: '#ffb000'
             }
-        )
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-
-        playAgain.on('pointerover', () => {
-            playAgain.setColor('#ffffff');
-        });
-
-        playAgain.on('pointerout', () => {
-            playAgain.setColor('#ffb000');
-        });
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         playAgain.on('pointerdown', () => {
             this.scene.start('Grill');
         });
 
-        // BACK TO START
         const home = this.add.text(
             width / 2 + 150,
-            660,
+            670,
             'BACK TO START',
             {
                 fontFamily: 'Arial Black',
                 fontSize: '18px',
                 color: '#ff4d1c'
             }
-        )
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-
-        home.on('pointerover', () => {
-            home.setColor('#ffffff');
-        });
-
-        home.on('pointerout', () => {
-            home.setColor('#ff4d1c');
-        });
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         home.on('pointerdown', () => {
             this.scene.start('Title');
         });
-
-        // FOOTER
-        this.add.text(
-            width / 2,
-            height - 8,
-            'NASHVILLE HOT  •  ATL PEACH  •  LEMON PEPPER  •  RED VELVET  •  BACON BOURBON',
-            {
-                fontFamily: 'Arial',
-                fontSize: '11px',
-                color: '#555555'
-            }
-        ).setOrigin(0.5);
     }
 }
 
@@ -338,4 +273,13 @@ const config = {
     ]
 };
 
-new Phaser.Game(config);
+window.addEventListener('load', () => {
+    const gameContainer = document.getElementById('game');
+
+    if (!gameContainer) {
+        console.error('WAFFLE HAHZ: #game container not found.');
+        return;
+    }
+
+    new Phaser.Game(config);
+});

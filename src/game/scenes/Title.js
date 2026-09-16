@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 export default class Title extends Phaser.Scene {
     constructor() {
@@ -46,30 +46,21 @@ export default class Title extends Phaser.Scene {
         )
         .setFillStyle(0xffb000)
         .setStrokeStyle(4, 0xffffff)
-        .setInteractive({
-            useHandCursor: true
-        });
+        .setInteractive({ useHandCursor: true });
 
-        const playText = this.add.text(
-            width / 2,
-            455,
-            'START TRAINING',
-            {
-                fontFamily: 'Arial Black',
-                fontSize: '28px',
-                color: '#121212'
-            }
-        ).setOrigin(0.5);
+        const playText = this.add.text(width / 2, 455, 'START TRAINING', {
+            fontFamily: 'Arial Black',
+            fontSize: '28px',
+            color: '#121212'
+        }).setOrigin(0.5);
 
         playButton.on('pointerover', () => {
             playButton.setFillStyle(0xffffff);
-            playText.setColor('#121212');
             playButton.setScale(1.04);
         });
 
         playButton.on('pointerout', () => {
             playButton.setFillStyle(0xffb000);
-            playText.setColor('#121212');
             playButton.setScale(1);
         });
 

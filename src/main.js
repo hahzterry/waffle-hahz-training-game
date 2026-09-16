@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 import Title from './game/scenes/Title.js';
 import GrillInstructions from './game/scenes/Grill_Instructions.js';

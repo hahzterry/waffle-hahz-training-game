@@ -1,36 +1,320 @@
-10:53:46.857 Running build in Washington, D.C., USA (East) – iad1
-10:53:46.858 Build machine configuration: 4 cores, 8 GB
-10:53:47.011 Cloning github.com/hahzterry/waffle-hahz-training-game (Branch: main, Commit: 7505644)
-10:53:47.894 Cloning completed: 883.000ms
-10:53:48.053 Restored build cache from previous deployment (9cHpAH3pwHbPCX9tCBDWbHeQYZMn)
-10:53:48.315 Running "vercel build"
-10:53:48.369 Vercel CLI 59.16.0
-10:53:48.969 Installing dependencies...
-10:53:49.772 
-10:53:49.772 up to date in 638ms
-10:53:49.773 
-10:53:49.773 5 packages are looking for funding
-10:53:49.773   run `npm fund` for details
-10:53:49.774 npm warn allow-scripts 1 package has install scripts not yet covered by allowScripts:
-10:53:49.774 npm warn allow-scripts   esbuild@0.25.2 (postinstall: node install.js)
-10:53:49.774 npm warn allow-scripts
-10:53:49.774 npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
-10:53:49.822 Running "npm run build"
-10:53:49.957 
-10:53:49.957 > template-vite@1.4.0 build
-10:53:49.958 > node log.js build & vite build --config vite/config.prod.mjs
-10:53:49.958 
-10:53:50.303 Building for production...
-10:53:50.358 ---------------------------------------------------------
-10:53:50.358 ❤️❤️❤️ Tell us about your game! - games@phaser.io ❤️❤️❤️
-10:53:50.358 ---------------------------------------------------------
-10:53:50.358 ✨ Done ✨
-10:53:50.360 ✗ Build failed in 61ms
-10:53:50.361 error during build:
-10:53:50.361 Could not resolve "./game/scenes/Results.js" from "src/main.js"
-10:53:50.361 file: /vercel/path0/src/main.js
-10:53:50.362     at getRollupError (file:///vercel/path0/node_modules/rollup/dist/es/shared/parseAst.js:397:41)
-10:53:50.362     at error (file:///vercel/path0/node_modules/rollup/dist/es/shared/parseAst.js:393:42)
-10:53:50.362     at ModuleLoader.handleInvalidResolvedId (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21328:24)
-10:53:50.362     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21288:26
-10:53:50.385 Error: Command "npm run build" exited with 1
+import Phaser from 'phaser';
+
+export default class Results extends Phaser.Scene {
+    constructor() {
+        super('Results');
+    }
+
+    create(data = {}) {
+        const { width, height } = this.scale;
+
+        this.cameras.main.setBackgroundColor('#121212');
+
+        const score = Number(data.score || 0);
+        const ordersServed = Number(data.ordersServed || 0);
+        const totalOrders = Number(data.totalOrders || 8);
+        const finalCombo = Number(data.finalCombo || 0);
+
+        let grade = 'KEEP TRAINING';
+
+        if (score >= 9000) {
+            grade = 'HAHZ CERTIFIED';
+        } else if (score >= 7000) {
+            grade = 'KITCHEN READY';
+        } else if (score >= 4500) {
+            grade = 'GETTING HOT';
+        }
+
+        // --------------------------------------------------
+        // HEADER
+        // --------------------------------------------------
+
+        this.add.text(width / 2, 45, 'WAFFLE HAHZ', {
+            fontFamily: 'Arial Black',
+            fontSize: '58px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 8
+        }).setOrigin(0.5);
+
+        this.add.text(width / 2, 105, 'TRAINING COMPLETE', {
+            fontFamily: 'Arial Black',
+            fontSize: '24px',
+            color: '#ffb000'
+        }).setOrigin(0.5);
+
+        // --------------------------------------------------
+        // GRADE
+        // --------------------------------------------------
+
+        this.add.text(width / 2, 160, grade, {
+            fontFamily: 'Arial Black',
+            fontSize: '38px',
+            color: '#ff4d1c'
+        }).setOrigin(0.5);
+
+        // --------------------------------------------------
+        // SCORE PANEL
+        // --------------------------------------------------
+
+        const panel = this.add.rectangle(
+            width / 2,
+            295,
+            620,
+            210,
+            20
+        );
+
+        panel
+            .setFillStyle(0x1d1d1d)
+            .setStrokeStyle(3, 0xffb000);
+
+        this.add.text(width / 2, 220, 'FINAL SCORE', {
+            fontFamily: 'Arial Black',
+            fontSize: '18px',
+            color: '#999999'
+        }).setOrigin(0.5);
+
+        this.add.text(width / 2, 260, score.toLocaleString(), {
+            fontFamily: 'Arial Black',
+            fontSize: '50px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+
+        this.add.text(
+            width / 2,
+            330,
+            `ORDERS SERVED: ${ordersServed} / ${totalOrders}`,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '21px',
+                color: '#ffffff'
+            }
+        ).setOrigin(0.5);
+
+        this.add.text(
+            width / 2,
+            370,
+            `FINAL COMBO: ${finalCombo}X`,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '21px',
+                color: '#ffb000'
+            }
+        ).setOrigin(0.5);
+
+        // --------------------------------------------------
+        // SOCIAL CHALLENGE
+        // --------------------------------------------------
+
+        const socialPanel = this.add.rectangle(
+            width / 2,
+            485,
+            820,
+            125,
+            18
+        );
+
+        socialPanel
+            .setFillStyle(0x242424)
+            .setStrokeStyle(3, 0xff4d1c);
+
+        this.add.text(
+            width / 2,
+            438,
+            'SHOW US YOUR SCORE',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '24px',
+                color: '#ffffff'
+            }
+        ).setOrigin(0.5);
+
+        this.add.text(
+            width / 2,
+            475,
+            'Follow @WaffleHahz + post your score with #WaffleHahz',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '19px',
+                color: '#ffb000'
+            }
+        ).setOrigin(0.5);
+
+        this.add.text(
+            width / 2,
+            510,
+            'for a chance to win a FREE WAFFLE HAHZ MEAL!',
+            {
+                fontFamily: 'Arial',
+                fontSize: '18px',
+                color: '#ffffff'
+            }
+        ).setOrigin(0.5);
+
+        // --------------------------------------------------
+        // FOLLOW BUTTON
+        // --------------------------------------------------
+
+        const followButton = this.add.rectangle(
+            width / 2 - 190,
+            565,
+            330,
+            58,
+            14
+        );
+
+        followButton
+            .setFillStyle(0x111111)
+            .setStrokeStyle(3, 0xffffff)
+            .setInteractive({ useHandCursor: true });
+
+        const followText = this.add.text(
+            width / 2 - 190,
+            565,
+            'FOLLOW @WAFFLEHAHZ',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '19px',
+                color: '#ffffff'
+            }
+        ).setOrigin(0.5);
+
+        followButton.on('pointerover', () => {
+            followButton.setFillStyle(0x333333);
+            followButton.setScale(1.04);
+        });
+
+        followButton.on('pointerout', () => {
+            followButton.setFillStyle(0x111111);
+            followButton.setScale(1);
+        });
+
+        followButton.on('pointerdown', () => {
+            window.open(
+                'https://x.com/WaffleHahz',
+                '_blank',
+                'noopener,noreferrer'
+            );
+        });
+
+        // --------------------------------------------------
+        // POST SCORE BUTTON
+        // --------------------------------------------------
+
+        const postButton = this.add.rectangle(
+            width / 2 + 190,
+            565,
+            330,
+            58,
+            14
+        );
+
+        postButton
+            .setFillStyle(0xffb000)
+            .setStrokeStyle(3, 0xffffff)
+            .setInteractive({ useHandCursor: true });
+
+        const postText = this.add.text(
+            width / 2 + 190,
+            565,
+            'POST MY SCORE',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '20px',
+                color: '#121212'
+            }
+        ).setOrigin(0.5);
+
+        postButton.on('pointerover', () => {
+            postButton.setFillStyle(0xffffff);
+            postButton.setScale(1.04);
+        });
+
+        postButton.on('pointerout', () => {
+            postButton.setFillStyle(0xffb000);
+            postButton.setScale(1);
+        });
+
+        postButton.on('pointerdown', () => {
+            const postText = encodeURIComponent(
+                `I scored ${score.toLocaleString()} in the WAFFLE HAHZ GAME! 🧇🔥\n\nCan you beat my score?\n\n@WaffleHahz #WaffleHahz`
+            );
+
+            window.open(
+                `https://twitter.com/intent/tweet?text=${postText}`,
+                '_blank',
+                'noopener,noreferrer'
+            );
+        });
+
+        // --------------------------------------------------
+        // BOTTOM NAVIGATION
+        // --------------------------------------------------
+
+        const playAgain = this.add.text(
+            width / 2 - 150,
+            660,
+            'PLAY AGAIN',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '18px',
+                color: '#ffb000'
+            }
+        )
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+
+        playAgain.on('pointerover', () => {
+            playAgain.setColor('#ffffff');
+        });
+
+        playAgain.on('pointerout', () => {
+            playAgain.setColor('#ffb000');
+        });
+
+        playAgain.on('pointerdown', () => {
+            this.scene.start('Grill');
+        });
+
+        const home = this.add.text(
+            width / 2 + 150,
+            660,
+            'BACK TO START',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '18px',
+                color: '#ff4d1c'
+            }
+        )
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+
+        home.on('pointerover', () => {
+            home.setColor('#ffffff');
+        });
+
+        home.on('pointerout', () => {
+            home.setColor('#ff4d1c');
+        });
+
+        home.on('pointerdown', () => {
+            this.scene.start('Title');
+        });
+
+        // --------------------------------------------------
+        // FOOTER
+        // --------------------------------------------------
+
+        this.add.text(
+            width / 2,
+            height - 8,
+            'NASHVILLE HOT  •  ATL PEACH  •  LEMON PEPPER  •  RED VELVET  •  BACON BOURBON',
+            {
+                fontFamily: 'Arial',
+                fontSize: '11px',
+                color: '#555555'
+            }
+        ).setOrigin(0.5);
+    }
+}

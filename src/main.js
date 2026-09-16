@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 
-import Title from './scenes/Title.js';
-import GrillInstructions from './scenes/Grill_Instructions.js';
-import Grill from './scenes/Grill.js';
-import Results from './scenes/Results.js';
+import Title from './game/scenes/Title.js';
+import GrillInstructions from './game/scenes/Grill_Instructions.js';
+import Grill from './game/scenes/Grill.js';
+import Results from './game/scenes/Results.js';
 
 const config = {
     type: Phaser.AUTO,

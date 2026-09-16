@@ -1,6 +1,4 @@
-// src/game/scenes/Grill_Instructions.js
-
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 export default class GrillInstructions extends Phaser.Scene {
     constructor() {
@@ -12,18 +10,20 @@ export default class GrillInstructions extends Phaser.Scene {
 
         this.cameras.main.setBackgroundColor('#181818');
 
-        this.add.text(width / 2, 80, 'WAFFLE HAHZ TRAINING', {
+        // HEADER
+        this.add.text(width / 2, 70, 'WAFFLE HAHZ TRAINING', {
             fontFamily: 'Arial Black',
             fontSize: '48px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
-        this.add.text(width / 2, 135, 'LEARN THE FIVE SIGNATURE BUILDS', {
+        this.add.text(width / 2, 125, 'LEARN THE FIVE SIGNATURE BUILDS', {
             fontFamily: 'Arial Black',
             fontSize: '20px',
             color: '#ffb000'
         }).setOrigin(0.5);
 
+        // RECIPES
         const builds = [
             {
                 name: 'NASHVILLE HOT',
@@ -58,39 +58,78 @@ export default class GrillInstructions extends Phaser.Scene {
         ];
 
         builds.forEach((item, index) => {
-            const y = 205 + index * 65;
+            const y = 195 + index * 65;
 
-            this.add.text(170, y, item.name, {
-                fontFamily: 'Arial Black',
-                fontSize: 22,
-                color: '#ff4d1c'
-            });
+            this.add.text(
+                150,
+                y,
+                item.name,
+                {
+                    fontFamily: 'Arial Black',
+                    fontSize: '21px',
+                    color: '#ff4d1c'
+                }
+            );
 
-            this.add.text(430, y, `${item.waffle} + ${item.chicken} + ${item.finish}`, {
-                fontFamily: 'Arial',
-                fontSize: 20,
-                color: '#ffffff'
-            });
+            this.add.text(
+                405,
+                y,
+                `${item.waffle} + ${item.chicken} + ${item.finish}`,
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '19px',
+                    color: '#ffffff'
+                }
+            );
         });
 
+        // START BUTTON
         const start = this.add.rectangle(
             width / 2,
-            615,
+            610,
             320,
             70,
             14
         )
         .setFillStyle(0xffb000)
+        .setStrokeStyle(3, 0xffffff)
         .setInteractive({ useHandCursor: true });
 
-        this.add.text(width / 2, 615, 'ENTER THE KITCHEN', {
-            fontFamily: 'Arial Black',
-            fontSize: 23,
-            color: '#111111'
-        }).setOrigin(0.5);
+        const startText = this.add.text(
+            width / 2,
+            610,
+            'ENTER THE KITCHEN',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '23px',
+                color: '#111111'
+            }
+        ).setOrigin(0.5);
+
+        start.on('pointerover', () => {
+            start.setFillStyle(0xffffff);
+            start.setScale(1.04);
+        });
+
+        start.on('pointerout', () => {
+            start.setFillStyle(0xffb000);
+            start.setScale(1);
+        });
 
         start.on('pointerdown', () => {
             this.scene.start('Grill');
         });
+
+        // FOOTER
+        this.add.text(
+            width / 2,
+            height - 20,
+            'LEARN IT. BUILD IT. SERVE IT.',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '13px',
+                color: '#666666'
+            }
+        ).setOrigin(0.5);
     }
 }

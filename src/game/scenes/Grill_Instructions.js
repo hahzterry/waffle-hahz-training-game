@@ -1,51 +1,96 @@
-import { Scene } from 'phaser';
+// src/game/scenes/Grill_Instructions.js
 
-export class Grill_Instructions extends Scene
-{
-    constructor ()
-    {
+import Phaser from 'phaser';
+
+export default class GrillInstructions extends Phaser.Scene {
+    constructor() {
         super('GrillInstructions');
     }
 
-    preload ()
-    {
-        this.load.setPath('assets');
-            
-    }
+    create() {
+        const { width, height } = this.scale;
 
-    create ()
-    {
-        let instructions1 = this.add.video(0,0).loadURL('assets/videos/Instructions 1.mp4').setOrigin(0,0);
-        let instructions2 = this.add.video(0,0).loadURL('assets/videos/Instructions 2.mp4').setOrigin(0,0);
-        let instructions3 = this.add.video(0,0).loadURL('assets/videos/Instructions 3.mp4').setOrigin(0,0);
-        let instructions4 = this.add.video(0,0).loadURL('assets/videos/Instructions 4.mp4').setOrigin(0,0);
-        let gamestartscreen = this.add.video(0,0).loadURL('assets/videos/game start screen.mp4').setOrigin(0,0);
+        this.cameras.main.setBackgroundColor('#181818');
 
+        this.add.text(width / 2, 80, 'WAFFLE HAHZ TRAINING', {
+            fontFamily: 'Arial Black',
+            fontSize: '48px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
-        const videos = [instructions1, instructions2, instructions3, instructions4, gamestartscreen ];
-        videos[0].play(false);
+        this.add.text(width / 2, 135, 'LEARN THE FIVE SIGNATURE BUILDS', {
+            fontFamily: 'Arial Black',
+            fontSize: '20px',
+            color: '#ffb000'
+        }).setOrigin(0.5);
 
-        //loop through the videos and play the next one when the current one finishes.
-        //When the last video finishes, call handleEndOfInstructions
-        for (let i = 0; i < videos.length; i++) 
-        {
-            videos[i].once('complete', () => {
-            videos[i + 1].play(false);
-            });
-            if (i === videos.length - 1) {
-                break;
+        const builds = [
+            {
+                name: 'NASHVILLE HOT',
+                waffle: 'Cornbread Waffle',
+                chicken: 'Nashville Chicken',
+                finish: 'Hot Honey'
+            },
+            {
+                name: 'ATL PEACH',
+                waffle: 'Peach Waffle',
+                chicken: 'Crispy Chicken',
+                finish: 'Peach-Habanero Glaze'
+            },
+            {
+                name: 'LEMON PEPPER',
+                waffle: 'Lemon Waffle',
+                chicken: 'Lemon-Pepper Chicken',
+                finish: 'Honey'
+            },
+            {
+                name: 'RED VELVET',
+                waffle: 'Red Velvet Waffle',
+                chicken: 'Crispy Chicken',
+                finish: 'Cream Cheese Honey'
+            },
+            {
+                name: 'BACON BOURBON',
+                waffle: 'Bacon Waffle',
+                chicken: 'Fried Chicken',
+                finish: 'Maple Glaze'
             }
-            videos[videos.length - 1].once('complete', () => {
-                this.handleEndOfInstructions();
+        ];
+
+        builds.forEach((item, index) => {
+            const y = 205 + index * 65;
+
+            this.add.text(170, y, item.name, {
+                fontFamily: 'Arial Black',
+                fontSize: 22,
+                color: '#ff4d1c'
             });
-        }
 
+            this.add.text(430, y, `${item.waffle} + ${item.chicken} + ${item.finish}`, {
+                fontFamily: 'Arial',
+                fontSize: 20,
+                color: '#ffffff'
+            });
+        });
+
+        const start = this.add.rectangle(
+            width / 2,
+            615,
+            320,
+            70,
+            14
+        )
+        .setFillStyle(0xffb000)
+        .setInteractive({ useHandCursor: true });
+
+        this.add.text(width / 2, 615, 'ENTER THE KITCHEN', {
+            fontFamily: 'Arial Black',
+            fontSize: 23,
+            color: '#111111'
+        }).setOrigin(0.5);
+
+        start.on('pointerdown', () => {
+            this.scene.start('Grill');
+        });
     }
-
-    //When the last video finishes, start the Grill scene.
-    handleEndOfInstructions() {
-        this.scene.start('Grill');
-    }
-
-
 }

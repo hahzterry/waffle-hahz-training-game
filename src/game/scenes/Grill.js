@@ -1,6 +1,6 @@
 // src/game/scenes/Grill.js
 
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 const RECIPES = [
     {

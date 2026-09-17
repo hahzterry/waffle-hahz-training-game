@@ -7,9 +7,7 @@ const COLORS = {
     WHITE: 0xFFFFFF,
     OFF_WHITE: 0xFFF8F2,
     BLACK: 0x111111,
-    GRAY: 0x777777,
-    YELLOW: 0xFFD43B,
-    GREEN: 0x35D06F
+    YELLOW: 0xFFD43B
 };
 
 export default class Title extends Phaser.Scene {
@@ -34,7 +32,6 @@ export default class Title extends Phaser.Scene {
     }
 
     createBackground(width, height) {
-        // Large upper-right graphic
         this.add.circle(
             width + 90,
             -70,
@@ -43,16 +40,14 @@ export default class Title extends Phaser.Scene {
             0.055
         );
 
-        // Large lower-left graphic
         this.add.circle(
             -100,
-            height + 80,
+            this.scale.height + 80,
             390,
             COLORS.WHITE,
             0.045
         );
 
-        // Decorative circles
         this.add.circle(
             width * 0.13,
             height * 0.31,
@@ -69,7 +64,6 @@ export default class Title extends Phaser.Scene {
             0.055
         );
 
-        // Diagonal graphic
         const stripe = this.add.rectangle(
             width / 2,
             height * 0.53,
@@ -82,7 +76,6 @@ export default class Title extends Phaser.Scene {
         stripe.setAngle(-28);
         stripe.setDepth(-10);
 
-        // Subtle bottom panel
         this.add.rectangle(
             width / 2,
             height - 110,
@@ -101,13 +94,12 @@ export default class Title extends Phaser.Scene {
             brandY,
             'WAFFLE',
             {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(width * 0.16, 70),
-                fontStyle: 'bold',
+                fontFamily: 'Cooper Black',
+                fontSize: Math.min(width * 0.18, 76),
                 color: '#FFFFFF',
                 stroke: '#760000',
                 strokeThickness: 8,
-                letterSpacing: 1
+                letterSpacing: 0
             }
         ).setOrigin(0.5);
 
@@ -115,25 +107,23 @@ export default class Title extends Phaser.Scene {
 
         const hahz = this.add.text(
             width / 2,
-            brandY + Math.min(62, height * 0.085),
+            brandY + Math.min(66, height * 0.085),
             'HAHZ',
             {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(width * 0.18, 78),
-                fontStyle: 'bold',
+                fontFamily: 'Cooper Black',
+                fontSize: Math.min(width * 0.21, 86),
                 color: '#FFFFFF',
                 stroke: '#760000',
                 strokeThickness: 9,
-                letterSpacing: 3
+                letterSpacing: 1
             }
         ).setOrigin(0.5);
 
         hahz.setAngle(-2);
 
-        // Small brand separator — not another duplicate tagline
         this.add.rectangle(
             width / 2,
-            brandY + Math.min(112, height * 0.15),
+            brandY + Math.min(119, height * 0.15),
             Math.min(width * 0.42, 190),
             5,
             COLORS.YELLOW
@@ -141,41 +131,40 @@ export default class Title extends Phaser.Scene {
     }
 
     createTrainingMessage(width, height) {
-        const centerY = height * 0.42;
+        const centerY = height * 0.40;
 
         this.add.text(
             width / 2,
             centerY,
-            'THE MENU IS\\nTHE GAME.',
+            'THE MENU\\nIS THE GAME.',
             {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(width * 0.105, 46),
-                fontStyle: 'bold',
+                fontFamily: 'Cooper Black',
+                fontSize: Math.min(width * 0.115, 50),
                 color: '#FFFFFF',
                 stroke: '#760000',
                 strokeThickness: 5,
                 align: 'center',
-                lineSpacing: -5
+                lineSpacing: -3
             }
         ).setOrigin(0.5);
 
         this.add.text(
             width / 2,
-            centerY + Math.min(92, height * 0.115),
-            'WE ARE TRAINING OUR FUTURE STAFF\\nAND CUSTOMERS BEFORE WE OPEN.',
+            centerY + Math.min(96, height * 0.12),
+            'TRAINING OUR FUTURE STAFF\\nAND CUSTOMERS BEFORE WE OPEN.',
             {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(width * 0.043, 19),
+                fontFamily: 'Arial',
+                fontSize: Math.min(width * 0.047, 20),
+                fontStyle: 'bold',
                 color: '#FFD43B',
                 align: 'center',
-                lineSpacing: 5,
-                letterSpacing: 1
+                lineSpacing: 5
             }
         ).setOrigin(0.5);
 
         this.add.text(
             width / 2,
-            centerY + Math.min(145, height * 0.18),
+            centerY + Math.min(151, height * 0.19),
             'LEARN THE BUILDS.\\nKNOW THE MENU.\\nGET READY FOR ATLANTA.',
             {
                 fontFamily: 'Arial',
@@ -183,7 +172,7 @@ export default class Title extends Phaser.Scene {
                 fontStyle: 'bold',
                 color: '#FFFFFF',
                 align: 'center',
-                lineSpacing: 7
+                lineSpacing: 6
             }
         ).setOrigin(0.5);
     }
@@ -197,75 +186,24 @@ export default class Title extends Phaser.Scene {
         );
 
         const buttonHeight = Math.min(
-            86,
-            height * 0.105
+            88,
+            height * 0.11
         );
 
-        const playButton = this.createButton(
+        const shadow = this.add.rectangle(
+            width / 2,
+            buttonY + 9,
+            buttonWidth,
+            buttonHeight,
+            COLORS.RED_DEEP
+        );
+
+        const button = this.add.rectangle(
             width / 2,
             buttonY,
             buttonWidth,
             buttonHeight,
-            'START TRAINING',
-            COLORS.YELLOW,
-            '#111111',
-            () => {
-                this.scene.start('GrillInstructions');
-            }
-        );
-
-        this.pulseTween = this.tweens.add({
-            targets: playButton,
-            scaleX: 1.025,
-            scaleY: 1.025,
-            duration: 850,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-
-        // Training progress statement
-        this.add.text(
-            width / 2,
-            buttonY + buttonHeight / 2 + 38,
-            '8 ORDERS  •  5 SIGNATURE BUILDS',
-            {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(width * 0.035, 15),
-                color: '#FFFFFF',
-                letterSpacing: 1.5
-            }
-        ).setOrigin(0.5);
-    }
-
-    createButton(
-        x,
-        y,
-        buttonWidth,
-        buttonHeight,
-        label,
-        fillColor,
-        textColor,
-        callback
-    ) {
-        // Shadow
-        const shadow = this.add.rectangle(
-            x,
-            y + 9,
-            buttonWidth,
-            buttonHeight,
-            COLORS.RED_DEEP,
-            1
-        );
-
-        shadow.setStrokeStyle(0, COLORS.RED_DEEP);
-
-        const button = this.add.rectangle(
-            x,
-            y,
-            buttonWidth,
-            buttonHeight,
-            fillColor
+            COLORS.YELLOW
         );
 
         button
@@ -275,14 +213,14 @@ export default class Title extends Phaser.Scene {
             });
 
         const text = this.add.text(
-            x,
-            y,
-            label,
+            width / 2,
+            buttonY,
+            'START TRAINING',
             {
-                fontFamily: 'Arial Black',
-                fontSize: Math.min(widthSafe(this.scale.width) * 0.075, 31),
-                color: textColor,
-                letterSpacing: 1
+                fontFamily: 'Cooper Black',
+                fontSize: Math.min(width * 0.075, 32),
+                color: '#111111',
+                letterSpacing: 0
             }
         ).setOrigin(0.5);
 
@@ -292,8 +230,8 @@ export default class Title extends Phaser.Scene {
         });
 
         button.on('pointerout', () => {
-            button.setFillStyle(fillColor);
-            text.setColor(textColor);
+            button.setFillStyle(COLORS.YELLOW);
+            text.setColor('#111111');
         });
 
         button.on('pointerdown', () => {
@@ -303,11 +241,34 @@ export default class Title extends Phaser.Scene {
                 scaleY: 0.96,
                 duration: 70,
                 yoyo: true,
-                onComplete: callback
+                onComplete: () => {
+                    this.scene.start('GrillInstructions');
+                }
             });
         });
 
-        return button;
+        this.pulseTween = this.tweens.add({
+            targets: [button, text],
+            scaleX: 1.025,
+            scaleY: 1.025,
+            duration: 850,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        this.add.text(
+            width / 2,
+            buttonY + buttonHeight / 2 + 38,
+            '8 ORDERS  •  5 SIGNATURE BUILDS',
+            {
+                fontFamily: 'Arial',
+                fontSize: Math.min(width * 0.035, 15),
+                fontStyle: 'bold',
+                color: '#FFFFFF',
+                letterSpacing: 1
+            }
+        ).setOrigin(0.5);
     }
 
     createFooter(width, height) {
@@ -316,8 +277,9 @@ export default class Title extends Phaser.Scene {
             height - 34,
             'WAFFLE HAHZ  •  ATLANTA  •  TRAINING DAY',
             {
-                fontFamily: 'Arial Black',
+                fontFamily: 'Arial',
                 fontSize: Math.min(width * 0.028, 12),
+                fontStyle: 'bold',
                 color: '#FFFFFF',
                 alpha: 0.65,
                 letterSpacing: 1.5
@@ -331,8 +293,4 @@ export default class Title extends Phaser.Scene {
             this.pulseTween = null;
         }
     }
-}
-
-function widthSafe(width) {
-    return Math.max(320, width);
 }

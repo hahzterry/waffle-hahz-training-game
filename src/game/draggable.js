@@ -1,68 +1,188 @@
-import { Phaser } from 'phaser';
+import * as Phaser from 'phaser';
 
 /**
- * Uses the Phaser 3 built in touch events to allow a game object to be moved around a Phaser 3 Scene instance.
- * The method will listen for the GameObject Destroy event and cleanup the various event listeners that
- * were registered.
- * @param {Phaser.GameObjects.Image} gameObject
- * @param {boolean} [enableLogs=false] enables logging for the various drag event callbacks. If the gameObject.name field
- *                                     is populated, this will be included in the log line.
+ * Makes a Phaser GameObject draggable.
+ *
+ * Works with Phaser 3 GameObjects that support input.
+ *
+ * @param {Phaser.GameObjects.GameObject} gameObject
+ * @param {boolean} enableLogs
+ * @returns {Phaser.GameObjects.GameObject}
  */
-export function makeDraggable(gameObject, enableLogs = false) {
-  gameObject.setInteractive();
-
-  /**
-   * @param {string} message
-   * @returns {void}
-   */
-  function log(message) {
-    if (enableLogs) {
-      console.debug(message);
+export function makeDraggable(
+    gameObject,
+    enableLogs = false
+) {
+    if (!gameObject) {
+        throw new Error(
+            'makeDraggable: gameObject is required.'
+        );
     }
-  }
 
-  /**
-   * @param {Phaser.Input.Pointer} pointer
-   * @returns {void}
-   */
-  function onDrag(pointer) {
-    log(`[makeDraggable:onDrag] invoked for game object: ${gameObject.name}`);
-    gameObject.x = pointer.x;
-    gameObject.y = pointer.y;
-  }
+    const scene = gameObject.scene;
 
-  /**
-   * @returns {void}
-   */
-  function stopDrag() {
-    log(`[makeDraggable:stopDrag] invoked for game object: ${gameObject.name}`);
-    gameObject.on(Phaser.Input.Events.POINTER_DOWN, startDrag);
-    gameObject.off(Phaser.Input.Events.POINTER_MOVE, onDrag);
-    gameObject.off(Phaser.Input.Events.POINTER_UP, stopDrag);
-    gameObject.x = Math.round(gameObject.x);
-    gameObject.y = Math.round(gameObject.y);
-  }
+    if (!scene || !scene.input) {
+        throw new Error(
+            'makeDraggable: gameObject must belong to an active Phaser Scene.'
+        );
+    }
 
-  /**
-   * @returns {void}
-   */
-  function startDrag() {
-    log(`[makeDraggable:startDrag] invoked for game object: ${gameObject.name}`);
-    gameObject.off(Phaser.Input.Events.POINTER_DOWN, startDrag);
-    gameObject.on(Phaser.Input.Events.POINTER_MOVE, onDrag);
-    gameObject.on(Phaser.Input.Events.POINTER_UP, stopDrag);
-  }
+    gameObject.setInteractive({
+        useHandCursor: true
+    });
 
-  /**
-   * @returns {void}
-   */
-  function destroy() {
-    log(`[makeDraggable:destroy] invoked for game object: ${gameObject.name}`);
-    gameObject.off(Phaser.Input.Events.POINTER_DOWN, startDrag);
-    gameObject.off(Phaser.Input.Events.POINTER_MOVE, onDrag);
-    gameObject.off(Phaser.Input.Events.POINTER_UP, stopDrag);
-  }
+    scene.input.setDraggable(
+        gameObject,
+        true
+    );
 
-  gameObject.on(Phaser.Input.Events.POINTER_DOWN, startDrag);
-  gameObject.once(Phaser.GameObjects.Events.DESTROY, destroy);
+    const originalDepth =
+        gameObject.depth || 0;
+
+    function log(message) {
+        if (enableLogs) {
+            console.debug(
+                `[makeDraggable] ${message}`
+            );
+        }
+    }
+
+    function onDragStart(
+        pointer,
+        draggedObject
+    ) {
+        if (
+            draggedObject !== gameObject
+        ) {
+            return;
+        }
+
+        gameObject.setData(
+            'dragStartX',
+            gameObject.x
+        );
+
+        gameObject.setData(
+            'dragStartY',
+            gameObject.y
+        );
+
+        gameObject.setData(
+            'isDragging',
+            true
+        );
+
+        gameObject.setDepth(
+            originalDepth + 100
+        );
+
+        gameObject.setScale(
+            1.04
+        );
+
+        log(
+            `dragstart: ${gameObject.name || 'unnamed'}`
+        );
+    }
+
+    function onDrag(
+        pointer,
+        draggedObject,
+        dragX,
+        dragY
+    ) {
+        if (
+            draggedObject !== gameObject
+        ) {
+            return;
+        }
+
+        gameObject.x = dragX;
+        gameObject.y = dragY;
+
+        log(
+            `drag: ${gameObject.name || 'unnamed'}`
+        );
+    }
+
+    function onDragEnd(
+        pointer,
+        draggedObject
+    ) {
+        if (
+            draggedObject !== gameObject
+        ) {
+            return;
+        }
+
+        gameObject.setData(
+            'isDragging',
+            false
+        );
+
+        gameObject.setDepth(
+            originalDepth
+        );
+
+        gameObject.setScale(
+            1
+        );
+
+        gameObject.x =
+            Math.round(
+                gameObject.x
+            );
+
+        gameObject.y =
+            Math.round(
+                gameObject.y
+            );
+
+        log(
+            `dragend: ${gameObject.name || 'unnamed'}`
+        );
+    }
+
+    function onDestroy() {
+        scene.input.off(
+            Phaser.Input.Events.DRAG_START,
+            onDragStart
+        );
+
+        scene.input.off(
+            Phaser.Input.Events.DRAG,
+            onDrag
+        );
+
+        scene.input.off(
+            Phaser.Input.Events.DRAG_END,
+            onDragEnd
+        );
+
+        log(
+            `destroy: ${gameObject.name || 'unnamed'}`
+        );
+    }
+
+    scene.input.on(
+        Phaser.Input.Events.DRAG_START,
+        onDragStart
+    );
+
+    scene.input.on(
+        Phaser.Input.Events.DRAG,
+        onDrag
+    );
+
+    scene.input.on(
+        Phaser.Input.Events.DRAG_END,
+        onDragEnd
+    );
+
+    gameObject.once(
+        Phaser.GameObjects.Events.DESTROY,
+        onDestroy
+    );
+
+    return gameObject;
 }

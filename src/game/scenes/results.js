@@ -1,5 +1,3 @@
-// src/game/scenes/Results.js
-
 import * as Phaser from 'phaser';
 
 const COLORS = {
@@ -12,6 +10,7 @@ const COLORS = {
 
     BLACK: 0x111111,
     GRAY: 0x777777,
+    LIGHT_GRAY: 0xEEEEEE,
 
     YELLOW: 0xFFD43B,
     GREEN: 0x35D06F
@@ -25,122 +24,109 @@ export default class Results extends Phaser.Scene {
     create(data = {}) {
         const { width, height } = this.scale;
 
-        // ========================================================
-        // DATA
-        // ========================================================
-
-        const score = Number(data.score || 0);
-
-        // Support both the new and old Grill.js property names
-        const ordersServed = Number(
+        this.score = Number(data.score || 0);
+        this.ordersServed = Number(
             data.ordersServed ??
             data.orders ??
             0
         );
 
-        const totalOrders = Number(
+        this.totalOrders = Number(
             data.totalOrders ??
             8
         );
 
-        const finalCombo = Number(
+        this.finalCombo = Number(
             data.finalCombo ??
             data.combo ??
             0
         );
 
-        // ========================================================
-        // GRADE
-        // ========================================================
+        this.bestCombo = Number(
+            data.bestCombo ??
+            this.finalCombo
+        );
 
-        let grade = 'KEEP TRAINING';
-        let gradeSubtext = 'THE KITCHEN IS WAITING.';
-        let gradeColor = '#FFFFFF';
+        this.mistakes = Number(
+            data.mistakes || 0
+        );
 
-        if (score >= 9000) {
-            grade = 'HAHZ CERTIFIED';
-            gradeSubtext = 'YOU OWN THE KITCHEN.';
-            gradeColor = '#FFD43B';
-        } else if (score >= 7000) {
-            grade = 'KITCHEN READY';
-            gradeSubtext = 'YOU KNOW YOUR BUILDS.';
-            gradeColor = '#FFFFFF';
-        } else if (score >= 4500) {
-            grade = 'GETTING HOT';
-            gradeSubtext = 'KEEP THE HEAT ON.';
-            gradeColor = '#FFD43B';
-        }
+        this.accuracy = Number(
+            data.accuracy || 0
+        );
 
-        // ========================================================
-        // BACKGROUND
-        // ========================================================
+        this.satisfaction = Number(
+            data.satisfaction ?? 100
+        );
 
-        this.cameras.main.setBackgroundColor('#D71920');
+        this.level = Number(
+            data.level || 1
+        );
+
+        this.xp = Number(
+            data.xp || 0
+        );
+
+        const gradeData =
+            this.getGrade(this.score);
+
+        this.cameras.main.setBackgroundColor(
+            '#D71920'
+        );
 
         this.createBackground(width, height);
-
-        // ========================================================
-        // HEADER
-        // ========================================================
-
         this.createHeader(width);
-
-        // ========================================================
-        // RESULT HERO
-        // ========================================================
-
-        this.createResultHero(
+        this.createHero(
             width,
-            grade,
-            gradeSubtext,
-            gradeColor
+            gradeData
         );
+        this.createScoreCard(width);
+        this.createPerformanceCard(width);
+        this.createSocialSection(width);
+        this.createNavigation(width);
+        this.createFooter(width, height);
 
-        // ========================================================
-        // SCORE CARD
-        // ========================================================
-
-        this.createScoreCard(
-            width,
-            score,
-            ordersServed,
-            totalOrders,
-            finalCombo
-        );
-
-        // ========================================================
-        // SOCIAL
-        // ========================================================
-
-        this.createSocialSection(
-            width,
-            score
-        );
-
-        // ========================================================
-        // NAVIGATION
-        // ========================================================
-
-        this.createNavigation(
-            width
-        );
-
-        // ========================================================
-        // FOOTER
-        // ========================================================
-
-        this.createFooter(
-            width,
-            height
+        this.cameras.main.fadeIn(
+            400,
+            0,
+            0,
+            0
         );
     }
 
-    // ============================================================
-    // BACKGROUND
-    // ============================================================
+    getGrade(score) {
+        if (score >= 10000) {
+            return {
+                title: 'HAHZ CERTIFIED',
+                subtitle: 'YOU OWN THE KITCHEN.',
+                color: '#FFD43B'
+            };
+        }
+
+        if (score >= 7500) {
+            return {
+                title: 'KITCHEN READY',
+                subtitle: 'YOU KNOW YOUR BUILDS.',
+                color: '#FFFFFF'
+            };
+        }
+
+        if (score >= 5000) {
+            return {
+                title: 'GETTING HOT',
+                subtitle: 'KEEP THE HEAT ON.',
+                color: '#FFD43B'
+            };
+        }
+
+        return {
+            title: 'KEEP TRAINING',
+            subtitle: 'THE KITCHEN IS WAITING.',
+            color: '#FFFFFF'
+        };
+    }
 
     createBackground(width, height) {
-        // Top-right circle
         this.add.circle(
             width + 50,
             -40,
@@ -149,7 +135,6 @@ export default class Results extends Phaser.Scene {
             0.055
         );
 
-        // Bottom-left circle
         this.add.circle(
             -90,
             height + 40,
@@ -158,24 +143,6 @@ export default class Results extends Phaser.Scene {
             0.045
         );
 
-        // Decorative circles
-        this.add.circle(
-            55,
-            330,
-            25,
-            COLORS.WHITE,
-            0.055
-        );
-
-        this.add.circle(
-            width - 55,
-            760,
-            20,
-            COLORS.WHITE,
-            0.05
-        );
-
-        // Diagonal brand stripe
         const stripe = this.add.rectangle(
             width / 2,
             height / 2,
@@ -189,19 +156,14 @@ export default class Results extends Phaser.Scene {
         stripe.setDepth(-10);
     }
 
-    // ============================================================
-    // HEADER
-    // ============================================================
-
     createHeader(width) {
         this.add.text(
-            42,
-            35,
+            38,
+            32,
             'WAFFLE',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 43,
-                fontStyle: 'bold',
+                fontSize: 39,
                 color: '#FFFFFF',
                 stroke: '#760000',
                 strokeThickness: 5
@@ -209,13 +171,12 @@ export default class Results extends Phaser.Scene {
         );
 
         this.add.text(
-            42,
-            80,
+            38,
+            73,
             'HAHZ',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 43,
-                fontStyle: 'bold',
+                fontSize: 39,
                 color: '#FFFFFF',
                 stroke: '#760000',
                 strokeThickness: 5
@@ -223,11 +184,11 @@ export default class Results extends Phaser.Scene {
         );
 
         const badge = this.add.rectangle(
-            width - 155,
-            78,
-            250,
-            82,
-            18
+            width - 145,
+            72,
+            230,
+            76,
+            16
         );
 
         badge
@@ -238,91 +199,86 @@ export default class Results extends Phaser.Scene {
             );
 
         this.add.text(
-            width - 155,
-            57,
-            'GAME OVER',
-            {
-                fontFamily: 'Arial Black',
-                fontSize: 17,
-                color: '#D71920',
-                letterSpacing: 3
-            }
-        ).setOrigin(0.5);
-
-        this.add.text(
-            width - 155,
-            94,
+            width - 145,
+            52,
             'TRAINING COMPLETE',
             {
                 fontFamily: 'Arial Black',
                 fontSize: 13,
+                color: '#D71920',
+                letterSpacing: 2
+            }
+        ).setOrigin(0.5);
+
+        this.add.text(
+            width - 145,
+            82,
+            `LEVEL ${this.level}`,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 19,
                 color: '#111111'
             }
         ).setOrigin(0.5);
     }
 
-    // ============================================================
-    // RESULT HERO
-    // ============================================================
-
-    createResultHero(
-        width,
-        grade,
-        gradeSubtext,
-        gradeColor
-    ) {
-        // Eyebrow
+    createHero(width, gradeData) {
         this.add.text(
             width / 2,
-            205,
+            178,
             'YOUR KITCHEN RESULT',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 17,
+                fontSize: 16,
                 color: '#FFFFFF',
                 letterSpacing: 3
             }
         ).setOrigin(0.5);
 
-        // Main grade
-        this.add.text(
+        const grade = this.add.text(
             width / 2,
-            260,
-            grade,
+            235,
+            gradeData.title,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 48,
-                color: gradeColor,
-                align: 'center',
+                fontSize: 43,
+                color: gradeData.color,
                 stroke: '#760000',
                 strokeThickness: 4,
+                align: 'center',
                 wordWrap: {
-                    width: width - 100
+                    width: width - 80
                 }
             }
         ).setOrigin(0.5);
 
-        // Subtext
+        this.tweens.add({
+            targets: grade,
+            scaleX: 1.03,
+            scaleY: 1.03,
+            duration: 850,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
         this.add.text(
             width / 2,
-            320,
-            gradeSubtext,
+            292,
+            gradeData.subtitle,
             {
-                fontFamily: 'Arial',
-                fontSize: 20,
-                fontStyle: 'bold',
-                color: '#FFFFFF',
-                letterSpacing: 1
+                fontFamily: 'Arial Black',
+                fontSize: 18,
+                color: '#FFFFFF'
             }
         ).setOrigin(0.5);
 
-        // Certification badge for high scores
-        if (grade === 'HAHZ CERTIFIED') {
+        if (gradeData.title === 'HAHZ CERTIFIED') {
             const badge = this.add.rectangle(
                 width / 2,
-                370,
-                330,
-                55,
+                340,
+                300,
+                50,
                 14
             );
 
@@ -335,36 +291,26 @@ export default class Results extends Phaser.Scene {
 
             this.add.text(
                 width / 2,
-                370,
+                340,
                 '★ HAHZ CERTIFIED ★',
                 {
                     fontFamily: 'Arial Black',
-                    fontSize: 20,
+                    fontSize: 18,
                     color: '#111111'
                 }
             ).setOrigin(0.5);
         }
     }
 
-    // ============================================================
-    // SCORE CARD
-    // ============================================================
-
-    createScoreCard(
-        width,
-        score,
-        ordersServed,
-        totalOrders,
-        finalCombo
-    ) {
-        const cardY = 575;
+    createScoreCard(width) {
+        const cardY = 485;
 
         const card = this.add.rectangle(
             width / 2,
             cardY,
             width - 70,
-            345,
-            28
+            255,
+            24
         );
 
         card
@@ -374,133 +320,229 @@ export default class Results extends Phaser.Scene {
                 COLORS.RED_DEEP
             );
 
-        // Label
         this.add.text(
             width / 2,
-            cardY - 128,
+            cardY - 92,
             'FINAL SCORE',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 19,
+                fontSize: 17,
                 color: '#D71920',
                 letterSpacing: 3
             }
         ).setOrigin(0.5);
 
-        // Score
-        this.add.text(
+        this.scoreText = this.add.text(
             width / 2,
-            cardY - 62,
-            score.toLocaleString(),
+            cardY - 28,
+            '0',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 72,
+                fontSize: 62,
                 color: '#111111'
             }
         ).setOrigin(0.5);
 
-        // Divider
+        this.tweens.addCounter({
+            from: 0,
+            to: this.score,
+            duration: 900,
+            ease: 'Cubic.easeOut',
+            onUpdate: tween => {
+                const value =
+                    Math.floor(
+                        tween.getValue()
+                    );
+
+                this.scoreText.setText(
+                    value.toLocaleString()
+                );
+            }
+        });
+
         this.add.rectangle(
             width / 2,
-            cardY + 10,
-            width - 150,
-            3,
+            cardY + 25,
+            width - 140,
+            2,
             COLORS.LIGHT_GRAY
         );
 
-        // Stats
         this.createStat(
-            width / 2 - 190,
-            cardY + 75,
-            ordersServed,
-            totalOrders,
-            'ORDERS SERVED'
+            width / 2 - 180,
+            cardY + 72,
+            `${this.ordersServed}/${this.totalOrders}`,
+            'ORDERS'
         );
 
         this.createStat(
-            width / 2 + 190,
-            cardY + 75,
-            `${finalCombo}X`,
-            null,
+            width / 2,
+            cardY + 72,
+            `${this.bestCombo}X`,
             'BEST COMBO'
+        );
+
+        this.createStat(
+            width / 2 + 180,
+            cardY + 72,
+            `${this.accuracy}%`,
+            'ACCURACY'
         );
     }
 
-    // ============================================================
-    // STAT
-    // ============================================================
-
-    createStat(
-        x,
-        y,
-        value,
-        total,
-        label
-    ) {
-        const valueText =
-            total !== null
-                ? `${value} / ${total}`
-                : String(value);
-
+    createStat(x, y, value, label) {
         this.add.text(
             x,
             y,
-            valueText,
+            value,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 29,
+                fontSize: 25,
                 color: '#D71920'
             }
         ).setOrigin(0.5);
 
         this.add.text(
             x,
-            y + 39,
+            y + 34,
             label,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 13,
+                fontSize: 10,
                 color: '#777777',
                 letterSpacing: 1
             }
         ).setOrigin(0.5);
     }
 
-    // ============================================================
-    // SOCIAL SECTION
-    // ============================================================
+    createPerformanceCard(width) {
+        const y = 700;
 
-    createSocialSection(
-        width,
-        score
-    ) {
-        const panelY = 850;
-
-        const panel = this.add.rectangle(
+        const card = this.add.rectangle(
             width / 2,
-            panelY,
+            y,
             width - 70,
-            300,
-            28
+            180,
+            22
         );
 
-        panel
+        card
             .setFillStyle(
                 COLORS.RED_DEEP,
                 0.95
             )
             .setStrokeStyle(
-                5,
+                4,
                 COLORS.WHITE
             );
 
         this.add.text(
             width / 2,
-            panelY - 105,
+            y - 62,
+            'KITCHEN PERFORMANCE',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 17,
+                color: '#FFFFFF',
+                letterSpacing: 2
+            }
+        ).setOrigin(0.5);
+
+        this.createPerformanceStat(
+            width / 2 - 175,
+            y + 4,
+            `${this.mistakes}`,
+            'MISTAKES'
+        );
+
+        this.createPerformanceStat(
+            width / 2,
+            y + 4,
+            `${this.satisfaction}%`,
+            'CUSTOMER SATISFACTION'
+        );
+
+        this.createPerformanceStat(
+            width / 2 + 175,
+            y + 4,
+            `${this.xp}`,
+            'XP EARNED'
+        );
+
+        this.add.text(
+            width / 2,
+            y + 55,
+            this.getTip(),
+            {
+                fontFamily: 'Arial',
+                fontSize: 13,
+                fontStyle: 'bold',
+                color: '#FFFFFF',
+                align: 'center',
+                wordWrap: {
+                    width: width - 110
+                }
+            }
+        ).setOrigin(0.5);
+    }
+
+    createPerformanceStat(
+        x,
+        y,
+        value,
+        label
+    ) {
+        this.add.text(
+            x,
+            y,
+            value,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 22,
+                color: '#FFD43B'
+            }
+        ).setOrigin(0.5);
+
+        this.add.text(
+            x,
+            y + 30,
+            label,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 9,
+                color: '#FFFFFF',
+                letterSpacing: 1,
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+    }
+
+    getTip() {
+        if (this.accuracy >= 90 && this.bestCombo >= 4) {
+            return 'ELITE BUILDING. NOW CHASE A HIGHER SCORE.';
+        }
+
+        if (this.accuracy >= 75) {
+            return 'YOUR BUILDS ARE DIALED IN. SPEED IS THE NEXT LEVEL.';
+        }
+
+        if (this.mistakes > 2) {
+            return 'SLOW DOWN FOR A SECOND. MEMORIZE THE BUILD, THEN ATTACK.';
+        }
+
+        return 'KEEP PLAYING. EVERY RUN BUILDS YOUR KITCHEN IQ.';
+    }
+
+    createSocialSection(width) {
+        const y = 920;
+
+        this.add.text(
+            width / 2,
+            y - 48,
             'SHOW US YOUR SCORE',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 29,
+                fontSize: 24,
                 color: '#FFFFFF',
                 letterSpacing: 1
             }
@@ -508,96 +550,36 @@ export default class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2,
-            panelY - 55,
+            y - 12,
             'CAN YOU BEAT IT?',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 25,
+                fontSize: 20,
                 color: '#FFD43B'
             }
         ).setOrigin(0.5);
 
-        this.add.text(
+        const postButton = this.createActionButton(
             width / 2,
-            panelY - 12,
+            y + 55,
+            width - 100,
+            62,
+            'POST MY SCORE',
+            COLORS.YELLOW,
+            '#111111',
+            () => {
+                this.shareScore();
+            }
+        );
+
+        const followButton = this.createActionButton(
+            width / 2,
+            y + 125,
+            width - 100,
+            52,
             'FOLLOW @WAFFLEHAHZ',
-            {
-                fontFamily: 'Arial Black',
-                fontSize: 20,
-                color: '#FFFFFF'
-            }
-        ).setOrigin(0.5);
-
-        this.add.text(
-            width / 2,
-            panelY + 22,
-            'POST YOUR SCORE WITH #WAFFLEHAHZ',
-            {
-                fontFamily: 'Arial',
-                fontSize: 16,
-                fontStyle: 'bold',
-                color: '#FFFFFF',
-                alpha: 0.85
-            }
-        ).setOrigin(0.5);
-
-        // Follow button
-        this.followButton = this.add.rectangle(
-            width / 2 - 185,
-            panelY + 92,
-            330,
-            65,
-            16
-        );
-
-        this.followButton
-            .setFillStyle(
-                COLORS.WHITE
-            )
-            .setStrokeStyle(
-                3,
-                COLORS.WHITE
-            )
-            .setInteractive({
-                useHandCursor: true
-            });
-
-        this.followText =
-            this.add.text(
-                width / 2 - 185,
-                panelY + 92,
-                'FOLLOW @WAFFLEHAHZ',
-                {
-                    fontFamily: 'Arial Black',
-                    fontSize: 18,
-                    color: '#D71920'
-                }
-            ).setOrigin(0.5);
-
-        this.followButton.on(
-            'pointerover',
-            () => {
-                this.followButton
-                    .setFillStyle(
-                        COLORS.OFF_WHITE
-                    )
-                    .setScale(1.02);
-            }
-        );
-
-        this.followButton.on(
-            'pointerout',
-            () => {
-                this.followButton
-                    .setFillStyle(
-                        COLORS.WHITE
-                    )
-                    .setScale(1);
-            }
-        );
-
-        this.followButton.on(
-            'pointerdown',
+            COLORS.WHITE,
+            '#D71920',
             () => {
                 window.open(
                     'https://x.com/WaffleHahz',
@@ -606,20 +588,28 @@ export default class Results extends Phaser.Scene {
                 );
             }
         );
+    }
 
-        // Post button
-        this.postButton = this.add.rectangle(
-            width / 2 + 185,
-            panelY + 92,
-            330,
-            65,
-            16
+    createActionButton(
+        x,
+        y,
+        buttonWidth,
+        buttonHeight,
+        label,
+        fillColor,
+        textColor,
+        callback
+    ) {
+        const button = this.add.rectangle(
+            x,
+            y,
+            buttonWidth,
+            buttonHeight,
+            15
         );
 
-        this.postButton
-            .setFillStyle(
-                COLORS.YELLOW
-            )
+        button
+            .setFillStyle(fillColor)
             .setStrokeStyle(
                 3,
                 COLORS.WHITE
@@ -628,145 +618,97 @@ export default class Results extends Phaser.Scene {
                 useHandCursor: true
             });
 
-        this.postText =
-            this.add.text(
-                width / 2 + 185,
-                panelY + 92,
-                'POST MY SCORE',
-                {
-                    fontFamily: 'Arial Black',
-                    fontSize: 20,
-                    color: '#111111'
-                }
-            ).setOrigin(0.5);
-
-        this.postButton.on(
-            'pointerover',
-            () => {
-                this.postButton
-                    .setFillStyle(
-                        COLORS.WHITE
-                    )
-                    .setScale(1.02);
-
-                this.postText.setColor(
-                    '#D71920'
-                );
-            }
-        );
-
-        this.postButton.on(
-            'pointerout',
-            () => {
-                this.postButton
-                    .setFillStyle(
-                        COLORS.YELLOW
-                    )
-                    .setScale(1);
-
-                this.postText.setColor(
-                    '#111111'
-                );
-            }
-        );
-
-        this.postButton.on(
-            'pointerdown',
-            () => {
-                const post = encodeURIComponent(
-                    `I scored ${score.toLocaleString()} in the WAFFLE HAHZ GAME! 🧇🔥\n\nCan you beat my score?\n\n@WaffleHahz #WaffleHahz`
-                );
-
-                window.open(
-                    `https://twitter.com/intent/tweet?text=${post}`,
-                    '_blank',
-                    'noopener,noreferrer'
-                );
-            }
-        );
-    }
-
-    // ============================================================
-    // NAVIGATION
-    // ============================================================
-
-    createNavigation(width) {
-        const y = 1235;
-
-        // Play again
-        const playAgain = this.add.rectangle(
-            width / 2,
+        const text = this.add.text(
+            x,
             y,
-            width - 90,
-            95,
-            20
-        );
-
-        playAgain
-            .setFillStyle(
-                COLORS.WHITE
-            )
-            .setStrokeStyle(
-                4,
-                COLORS.RED_DEEP
-            )
-            .setInteractive({
-                useHandCursor: true
-            });
-
-        this.add.text(
-            width / 2,
-            y - 10,
-            'PLAY AGAIN',
+            label,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 31,
-                color: '#D71920'
+                fontSize: 17,
+                color: textColor
             }
         ).setOrigin(0.5);
 
+        button.on('pointerover', () => {
+            button.setFillStyle(
+                fillColor === COLORS.YELLOW
+                    ? COLORS.WHITE
+                    : COLORS.OFF_WHITE
+            );
+
+            text.setColor(
+                fillColor === COLORS.YELLOW
+                    ? '#D71920'
+                    : '#D71920'
+            );
+
+            button.setScale(1.02);
+        });
+
+        button.on('pointerout', () => {
+            button.setFillStyle(fillColor);
+            text.setColor(textColor);
+            button.setScale(1);
+        });
+
+        button.on('pointerdown', callback);
+
+        return button;
+    }
+
+    shareScore() {
+        const post = encodeURIComponent(
+            `I scored ${this.score.toLocaleString()} in the WAFFLE HAHZ GAME! 🧇🔥\n\n` +
+            `Orders: ${this.ordersServed}/${this.totalOrders}\n` +
+            `Accuracy: ${this.accuracy}%\n` +
+            `Best Combo: ${this.bestCombo}x\n\n` +
+            `Can you beat my score?\n\n` +
+            `@WaffleHahz #WaffleHahz`
+        );
+
+        window.open(
+            `https://twitter.com/intent/tweet?text=${post}`,
+            '_blank',
+            'noopener,noreferrer'
+        );
+    }
+
+    createNavigation(width) {
+        const y = 1080;
+
+        const playAgain =
+            this.createActionButton(
+                width / 2,
+                y,
+                width - 90,
+                82,
+                'PLAY AGAIN',
+                COLORS.WHITE,
+                '#D71920',
+                () => {
+                    this.scene.start('Grill');
+                }
+            );
+
         this.add.text(
             width / 2,
-            y + 27,
-            'RUN IT BACK',
+            y + 55,
+            'RUN IT BACK • BEAT YOUR SCORE',
             {
-                fontFamily: 'Arial',
-                fontSize: 13,
-                fontStyle: 'bold',
+                fontFamily: 'Arial Black',
+                fontSize: 10,
                 color: '#777777',
                 letterSpacing: 2
             }
         ).setOrigin(0.5);
 
-        playAgain.on(
-            'pointerover',
-            () => {
-                playAgain.setScale(1.02);
-            }
-        );
-
-        playAgain.on(
-            'pointerout',
-            () => {
-                playAgain.setScale(1);
-            }
-        );
-
-        playAgain.on(
-            'pointerdown',
-            () => {
-                this.scene.start('Grill');
-            }
-        );
-
-        // Home
         const home = this.add.text(
             width / 2,
-            y + 100,
+            y + 115,
             '← BACK TO START',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 19,
+                fontSize: 17,
                 color: '#FFFFFF',
                 letterSpacing: 1
             }
@@ -776,40 +718,27 @@ export default class Results extends Phaser.Scene {
             useHandCursor: true
         });
 
-        home.on(
-            'pointerover',
-            () => {
-                home.setColor('#FFD43B');
-            }
-        );
+        home.on('pointerover', () => {
+            home.setColor('#FFD43B');
+        });
 
-        home.on(
-            'pointerout',
-            () => {
-                home.setColor('#FFFFFF');
-            }
-        );
+        home.on('pointerout', () => {
+            home.setColor('#FFFFFF');
+        });
 
-        home.on(
-            'pointerdown',
-            () => {
-                this.scene.start('Title');
-            }
-        );
+        home.on('pointerdown', () => {
+            this.scene.start('Title');
+        });
     }
-
-    // ============================================================
-    // FOOTER
-    // ============================================================
 
     createFooter(width, height) {
         this.add.text(
             width / 2,
-            height - 75,
+            height - 52,
             'WAFFLE HAHZ',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 18,
+                fontSize: 17,
                 color: '#FFFFFF',
                 letterSpacing: 3
             }
@@ -817,12 +746,11 @@ export default class Results extends Phaser.Scene {
 
         this.add.text(
             width / 2,
-            height - 42,
+            height - 25,
             'THE HOUSE ALTERNATIVE',
             {
                 fontFamily: 'Arial',
-                fontSize: 12,
-                fontStyle: 'bold',
+                fontSize: 11,
                 color: '#FFFFFF',
                 alpha: 0.6,
                 letterSpacing: 2

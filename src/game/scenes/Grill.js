@@ -1,5 +1,3 @@
-// src/game/scenes/Grill.js
-
 import * as Phaser from 'phaser';
 
 const COLORS = {
@@ -24,36 +22,64 @@ const RECIPES = [
         description: 'Cornbread waffle + Nashville chicken + hot honey',
         waffle: 'Cornbread Waffle',
         chicken: 'Nashville Chicken',
-        finish: 'Hot Honey'
+        finish: 'Hot Honey',
+        difficulty: 1
     },
     {
         name: 'ATL PEACH',
         description: 'Peach waffle + crispy chicken + peach-habanero glaze',
         waffle: 'Peach Waffle',
         chicken: 'Crispy Chicken',
-        finish: 'Peach-Habanero Glaze'
+        finish: 'Peach-Habanero Glaze',
+        difficulty: 2
     },
     {
         name: 'LEMON PEPPER',
         description: 'Lemon waffle + lemon-pepper chicken + honey',
         waffle: 'Lemon Waffle',
         chicken: 'Lemon-Pepper Chicken',
-        finish: 'Honey'
+        finish: 'Honey',
+        difficulty: 2
     },
     {
         name: 'RED VELVET',
         description: 'Red velvet waffle + crispy chicken + cream cheese honey',
         waffle: 'Red Velvet Waffle',
         chicken: 'Crispy Chicken',
-        finish: 'Cream Cheese Honey'
+        finish: 'Cream Cheese Honey',
+        difficulty: 3
     },
     {
         name: 'BACON BOURBON',
         description: 'Bacon waffle + fried chicken + maple glaze',
         waffle: 'Bacon Waffle',
         chicken: 'Fried Chicken',
-        finish: 'Maple Glaze'
+        finish: 'Maple Glaze',
+        difficulty: 3
     }
+];
+
+const WAFFLES = [
+    'Cornbread Waffle',
+    'Peach Waffle',
+    'Lemon Waffle',
+    'Red Velvet Waffle',
+    'Bacon Waffle'
+];
+
+const CHICKEN = [
+    'Nashville Chicken',
+    'Crispy Chicken',
+    'Lemon-Pepper Chicken',
+    'Fried Chicken'
+];
+
+const FINISHES = [
+    'Hot Honey',
+    'Peach-Habanero Glaze',
+    'Honey',
+    'Cream Cheese Honey',
+    'Maple Glaze'
 ];
 
 export default class Grill extends Phaser.Scene {
@@ -62,10 +88,21 @@ export default class Grill extends Phaser.Scene {
 
         this.score = 0;
         this.combo = 0;
+        this.bestCombo = 0;
+
         this.orderNumber = 0;
         this.totalOrders = 8;
 
         this.timeLeft = 30;
+        this.maxTime = 30;
+
+        this.correctOrders = 0;
+        this.mistakes = 0;
+        this.attempts = 0;
+
+        this.xp = 0;
+        this.level = 1;
+        this.satisfaction = 100;
 
         this.currentRecipe = null;
 
@@ -77,45 +114,34 @@ export default class Grill extends Phaser.Scene {
 
         this.locked = false;
         this.timer = null;
+
         this.optionButtons = [];
+        this.orderSequence = [];
     }
 
     create() {
         const { width, height } = this.scale;
 
-        // ---------------------------------------------------------
-        // RED BRAND BACKGROUND
-        // ---------------------------------------------------------
-
         this.cameras.main.setBackgroundColor('#D71920');
 
-        // Decorative background shapes
         this.createBackground(width, height);
-
-        // Main UI
         this.createHeader(width);
         this.createOrderCard(width);
         this.createKitchen(width);
         this.createServeButton(width);
+        this.createProgressBar(width);
 
-        // Start
+        this.generateOrderSequence();
         this.startNextOrder();
 
-        // Cleanup timer when scene shuts down
+        this.cameras.main.fadeIn(350, 0, 0, 0);
+
         this.events.once('shutdown', () => {
-            if (this.timer) {
-                this.timer.remove(false);
-                this.timer = null;
-            }
+            this.stopTimer();
         });
     }
 
-    // ============================================================
-    // BACKGROUND
-    // ============================================================
-
     createBackground(width, height) {
-        // Large subtle circle
         this.add.circle(
             width + 60,
             -40,
@@ -124,7 +150,6 @@ export default class Grill extends Phaser.Scene {
             0.055
         );
 
-        // Bottom circle
         this.add.circle(
             -60,
             height + 30,
@@ -133,7 +158,6 @@ export default class Grill extends Phaser.Scene {
             0.045
         );
 
-        // Small decorative circles
         this.add.circle(
             70,
             270,
@@ -142,15 +166,6 @@ export default class Grill extends Phaser.Scene {
             0.055
         );
 
-        this.add.circle(
-            width - 65,
-            920,
-            24,
-            COLORS.WHITE,
-            0.055
-        );
-
-        // Diagonal brand stripe
         const stripe = this.add.rectangle(
             width / 2,
             height / 2,
@@ -161,110 +176,121 @@ export default class Grill extends Phaser.Scene {
         );
 
         stripe.setAngle(-28);
-
-        // Keep decoration behind UI
         stripe.setDepth(-10);
     }
 
-    // ============================================================
-    // HEADER
-    // ============================================================
-
     createHeader(width) {
-        // Brand
-        this.add.text(42, 38, 'WAFFLE', {
-            fontFamily: 'Arial Black',
-            fontSize: 42,
-            fontStyle: 'bold',
-            color: '#FFFFFF',
-            stroke: '#760000',
-            strokeThickness: 5
-        });
+        this.add.text(
+            38,
+            30,
+            'WAFFLE',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 39,
+                color: '#FFFFFF',
+                stroke: '#760000',
+                strokeThickness: 5
+            }
+        );
 
-        this.add.text(42, 82, 'HAHZ', {
-            fontFamily: 'Arial Black',
-            fontSize: 42,
-            fontStyle: 'bold',
-            color: '#FFFFFF',
-            stroke: '#760000',
-            strokeThickness: 5
-        });
+        this.add.text(
+            38,
+            72,
+            'HAHZ',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 39,
+                color: '#FFFFFF',
+                stroke: '#760000',
+                strokeThickness: 5
+            }
+        );
 
-        // Training label
-        this.add.text(42, 132, 'TRAINING KITCHEN', {
-            fontFamily: 'Arial Black',
-            fontSize: 18,
-            color: '#FFFFFF',
-            letterSpacing: 2
-        });
+        this.add.text(
+            38,
+            120,
+            'TRAINING KITCHEN',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 16,
+                color: '#FFFFFF',
+                letterSpacing: 2
+            }
+        );
 
-        // Score card
         const scoreCard = this.add.rectangle(
-            width - 155,
+            width - 145,
             78,
-            245,
+            225,
             100,
-            COLORS.WHITE,
-            1
+            16
         );
 
         scoreCard
-            .setStrokeStyle(4, COLORS.RED_DEEP)
-            .setOrigin(0.5);
+            .setFillStyle(COLORS.WHITE)
+            .setStrokeStyle(4, COLORS.RED_DEEP);
 
-        this.scoreText = this.add.text(
-            width - 155,
-            55,
+        this.add.text(
+            width - 145,
+            51,
             'SCORE',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 17,
+                fontSize: 15,
                 color: '#D71920',
                 letterSpacing: 2
             }
         ).setOrigin(0.5);
 
         this.scoreNumberText = this.add.text(
-            width - 155,
-            91,
-            '0000',
+            width - 145,
+            86,
+            '00000',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 36,
+                fontSize: 31,
                 color: '#111111'
             }
         ).setOrigin(0.5);
 
-        // Combo
         this.comboText = this.add.text(
-            width - 155,
-            154,
+            width - 145,
+            133,
             'COMBO x0',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 16,
+                fontSize: 14,
                 color: '#D71920'
             }
         ).setOrigin(0.5);
 
-        // Order indicator
+        this.levelText = this.add.text(
+            width - 145,
+            156,
+            'LEVEL 1',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 11,
+                color: '#777777'
+            }
+        ).setOrigin(0.5);
+
         this.orderText = this.add.text(
             width / 2,
-            177,
+            176,
             'ORDER 1 / 8',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 23,
+                fontSize: 21,
                 color: '#FFFFFF'
             }
         ).setOrigin(0.5);
 
-        // Timer pill
         this.timerPill = this.add.rectangle(
             width / 2,
-            225,
-            250,
-            65,
+            222,
+            235,
+            58,
             999
         );
 
@@ -274,19 +300,15 @@ export default class Grill extends Phaser.Scene {
 
         this.timerText = this.add.text(
             width / 2,
-            225,
+            222,
             '00:30',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 34,
+                fontSize: 30,
                 color: '#D71920'
             }
         ).setOrigin(0.5);
     }
-
-    // ============================================================
-    // ORDER CARD
-    // ============================================================
 
     createOrderCard(width) {
         const cardY = 365;
@@ -303,70 +325,62 @@ export default class Grill extends Phaser.Scene {
             .setFillStyle(COLORS.WHITE)
             .setStrokeStyle(6, COLORS.RED_DEEP);
 
-        // Small label
         this.add.text(
             width / 2,
             cardY - 77,
-            'CURRENT ORDER',
+            'CUSTOMER ORDER',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 18,
+                fontSize: 16,
                 color: '#D71920',
                 letterSpacing: 3
             }
         ).setOrigin(0.5);
 
-        // Recipe name
         this.recipeName = this.add.text(
             width / 2,
-            cardY - 25,
+            cardY - 27,
             '',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 44,
+                fontSize: 38,
                 color: '#D71920',
                 align: 'center',
                 wordWrap: {
-                    width: width - 130
+                    width: width - 120
                 }
             }
         ).setOrigin(0.5);
 
-        // Description
         this.recipeDescription = this.add.text(
             width / 2,
-            cardY + 42,
+            cardY + 36,
             '',
             {
                 fontFamily: 'Arial',
-                fontSize: 23,
+                fontSize: 18,
                 fontStyle: 'bold',
                 color: '#111111',
                 align: 'center',
                 wordWrap: {
-                    width: width - 130
+                    width: width - 110
                 },
-                lineSpacing: 6
+                lineSpacing: 5
             }
         ).setOrigin(0.5);
 
-        // Instruction
-        this.add.text(
+        this.difficultyText = this.add.text(
             width / 2,
-            cardY + 87,
-            'BUILD THIS ORDER',
+            cardY + 82,
+            '',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 17,
+                fontSize: 12,
                 color: '#777777',
                 letterSpacing: 2
             }
         ).setOrigin(0.5);
     }
-
-    // ============================================================
-    // KITCHEN
-    // ============================================================
 
     createKitchen(width) {
         this.createCategory(
@@ -374,13 +388,7 @@ export default class Grill extends Phaser.Scene {
             'WAFFLE',
             620,
             'waffle',
-            [
-                'Cornbread Waffle',
-                'Peach Waffle',
-                'Lemon Waffle',
-                'Red Velvet Waffle',
-                'Bacon Waffle'
-            ]
+            WAFFLES
         );
 
         this.createCategory(
@@ -388,12 +396,7 @@ export default class Grill extends Phaser.Scene {
             'CHICKEN',
             910,
             'chicken',
-            [
-                'Nashville Chicken',
-                'Crispy Chicken',
-                'Lemon-Pepper Chicken',
-                'Fried Chicken'
-            ]
+            CHICKEN
         );
 
         this.createCategory(
@@ -401,38 +404,31 @@ export default class Grill extends Phaser.Scene {
             'FINISH',
             1200,
             'finish',
-            [
-                'Hot Honey',
-                'Peach-Habanero Glaze',
-                'Honey',
-                'Cream Cheese Honey',
-                'Maple Glaze'
-            ]
+            FINISHES
         );
 
-        // Current build display
         this.selectedText = this.add.text(
             width / 2,
             1510,
             'SELECT ONE FROM EACH',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 22,
+                fontSize: 20,
                 color: '#FFFFFF',
                 align: 'center',
                 wordWrap: {
-                    width: width - 100
+                    width: width - 80
                 }
             }
         ).setOrigin(0.5);
 
         this.add.text(
             width / 2,
-            1555,
+            1550,
             'WAFFLE  +  CHICKEN  +  FINISH',
             {
                 fontFamily: 'Arial',
-                fontSize: 16,
+                fontSize: 14,
                 fontStyle: 'bold',
                 color: '#FFFFFF',
                 alpha: 0.72
@@ -440,63 +436,57 @@ export default class Grill extends Phaser.Scene {
         ).setOrigin(0.5);
     }
 
-    // ============================================================
-    // CATEGORY
-    // ============================================================
-
     createCategory(number, title, y, type, options) {
         const { width } = this.scale;
 
-        // Category heading
         this.add.circle(
-            78,
+            70,
             y,
-            27,
+            25,
             COLORS.WHITE
         );
 
         this.add.text(
-            78,
+            70,
             y,
             number,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 24,
+                fontSize: 21,
                 color: '#D71920'
             }
         ).setOrigin(0.5);
 
         this.add.text(
-            125,
+            112,
             y,
             title,
             {
                 fontFamily: 'Arial Black',
-                fontSize: 26,
+                fontSize: 24,
                 color: '#FFFFFF',
                 letterSpacing: 1
             }
         ).setOrigin(0, 0.5);
 
-        // Divider
         this.add.rectangle(
-            125,
-            y + 35,
-            width - 165,
+            112,
+            y + 34,
+            width - 150,
             2,
             COLORS.WHITE,
             0.22
         ).setOrigin(0, 0.5);
 
         options.forEach((label, index) => {
-            const buttonY = y + 80 + index * 50;
+            const buttonY = y + 80 + index * 49;
 
             const button = this.add.rectangle(
                 width / 2,
                 buttonY,
-                width - 90,
-                43,
-                13
+                width - 80,
+                42,
+                12
             );
 
             button
@@ -512,35 +502,31 @@ export default class Grill extends Phaser.Scene {
                 label,
                 {
                     fontFamily: 'Arial',
-                    fontSize: 19,
+                    fontSize: 17,
                     fontStyle: 'bold',
                     color: '#111111',
                     align: 'center',
                     wordWrap: {
-                        width: width - 150
+                        width: width - 130
                     }
                 }
             ).setOrigin(0.5);
 
-            // Selection check
             const check = this.add.text(
-                width - 72,
+                width - 60,
                 buttonY,
                 '✓',
                 {
                     fontFamily: 'Arial Black',
-                    fontSize: 22,
-                    color: '#D71920'
+                    fontSize: 20,
+                    color: '#FFFFFF'
                 }
             ).setOrigin(0.5);
 
             check.setVisible(false);
 
-            // Hover
             button.on('pointerover', () => {
-                if (this.locked) {
-                    return;
-                }
+                if (this.locked) return;
 
                 if (this.selected[type] !== label) {
                     button.setFillStyle(COLORS.OFF_WHITE);
@@ -549,9 +535,7 @@ export default class Grill extends Phaser.Scene {
             });
 
             button.on('pointerout', () => {
-                if (this.locked) {
-                    return;
-                }
+                if (this.locked) return;
 
                 if (this.selected[type] !== label) {
                     button.setFillStyle(COLORS.WHITE);
@@ -559,7 +543,6 @@ export default class Grill extends Phaser.Scene {
                 }
             });
 
-            // Touch
             button.on('pointerdown', () => {
                 this.selectIngredient(
                     type,
@@ -579,95 +562,13 @@ export default class Grill extends Phaser.Scene {
         });
     }
 
-    // ============================================================
-    // SELECT INGREDIENT
-    // ============================================================
-
-    selectIngredient(type, label, button, text) {
-        if (this.locked) {
-            return;
-        }
-
-        this.optionButtons
-            .filter(option => option.type === type)
-            .forEach(option => {
-                option.button.setFillStyle(COLORS.WHITE);
-                option.button.setStrokeStyle(
-                    2,
-                    COLORS.RED_DEEP
-                );
-
-                option.button.setScale(1);
-
-                option.text.setColor('#111111');
-
-                if (option.check) {
-                    option.check.setVisible(false);
-                }
-            });
-
-        // Selected state
-        button.setFillStyle(COLORS.RED_DEEP);
-        button.setStrokeStyle(4, COLORS.WHITE);
-        button.setScale(1.02);
-
-        text.setColor('#FFFFFF');
-
-        const selectedOption = this.optionButtons.find(
-            option =>
-                option.type === type &&
-                option.label === label
-        );
-
-        if (selectedOption && selectedOption.check) {
-            selectedOption.check.setColor('#FFFFFF');
-            selectedOption.check.setVisible(true);
-        }
-
-        this.selected[type] = label;
-
-        this.updateSelectionText();
-        this.updateServeButton();
-    }
-
-    // ============================================================
-    // SELECTION SUMMARY
-    // ============================================================
-
-    updateSelectionText() {
-        const waffle = this.selected.waffle || 'WAFFLE';
-        const chicken = this.selected.chicken || 'CHICKEN';
-        const finish = this.selected.finish || 'FINISH';
-
-        const ready =
-            this.selected.waffle &&
-            this.selected.chicken &&
-            this.selected.finish;
-
-        this.selectedText.setText(
-            ready
-                ? `${waffle}  +  ${chicken}  +  ${finish}`
-                : `${waffle}  +  ${chicken}  +  ${finish}`
-        );
-
-        this.selectedText.setColor(
-            ready
-                ? '#FFFFFF'
-                : '#FFFFFF'
-        );
-    }
-
-    // ============================================================
-    // SERVE BUTTON
-    // ============================================================
-
     createServeButton(width) {
         this.serveButton = this.add.rectangle(
             width / 2,
             1660,
-            width - 90,
-            110,
-            22
+            width - 80,
+            105,
+            20
         );
 
         this.serveButton
@@ -679,23 +580,22 @@ export default class Grill extends Phaser.Scene {
 
         this.serveText = this.add.text(
             width / 2,
-            1660,
+            1648,
             'SERVE ORDER',
             {
                 fontFamily: 'Arial Black',
-                fontSize: 39,
-                color: '#D71920',
-                letterSpacing: 1
+                fontSize: 34,
+                color: '#D71920'
             }
         ).setOrigin(0.5);
 
         this.serveSubtext = this.add.text(
             width / 2,
-            1710,
-            'TAP TO CHECK YOUR BUILD',
+            1691,
+            'SELECT ALL THREE INGREDIENTS',
             {
                 fontFamily: 'Arial',
-                fontSize: 15,
+                fontSize: 13,
                 fontStyle: 'bold',
                 color: '#777777',
                 letterSpacing: 1
@@ -703,20 +603,10 @@ export default class Grill extends Phaser.Scene {
         ).setOrigin(0.5);
 
         this.serveButton.on('pointerover', () => {
-            if (this.locked) {
-                return;
-            }
+            if (this.locked) return;
 
-            const ready =
-                this.selected.waffle &&
-                this.selected.chicken &&
-                this.selected.finish;
-
-            if (ready) {
-                this.serveButton.setFillStyle(
-                    COLORS.OFF_WHITE
-                );
-
+            if (this.isBuildComplete()) {
+                this.serveButton.setFillStyle(COLORS.OFF_WHITE);
                 this.serveButton.setScale(1.015);
             }
         });
@@ -732,44 +622,56 @@ export default class Grill extends Phaser.Scene {
         this.updateServeButton();
     }
 
-    updateServeButton() {
-        const ready =
-            this.selected.waffle &&
-            this.selected.chicken &&
-            this.selected.finish;
+    createProgressBar(width) {
+        this.add.text(
+            width / 2,
+            1735,
+            'CUSTOMER SATISFACTION',
+            {
+                fontFamily: 'Arial Black',
+                fontSize: 11,
+                color: '#FFFFFF',
+                letterSpacing: 2
+            }
+        ).setOrigin(0.5);
 
-        if (ready) {
-            this.serveButton.setFillStyle(
-                COLORS.WHITE
-            );
+        this.satisfactionBackground = this.add.rectangle(
+            width / 2,
+            1760,
+            width - 120,
+            13,
+            999,
+            COLORS.RED_DEEP
+        );
 
-            this.serveButton.setStrokeStyle(
-                5,
-                COLORS.RED_DEEP
-            );
+        this.satisfactionBar = this.add.rectangle(
+            60,
+            1760,
+            width - 120,
+            13,
+            999,
+            COLORS.GREEN
+        ).setOrigin(0, 0.5);
 
-            this.serveText.setColor('#D71920');
-
-            this.serveSubtext.setColor('#111111');
-        } else {
-            this.serveButton.setFillStyle(
-                COLORS.WHITE
-            );
-
-            this.serveButton.setStrokeStyle(
-                5,
-                COLORS.WHITE
-            );
-
-            this.serveText.setColor('#D71920');
-
-            this.serveSubtext.setColor('#777777');
-        }
+        this.updateSatisfaction();
     }
 
-    // ============================================================
-    // NEXT ORDER
-    // ============================================================
+    generateOrderSequence() {
+        const pool = [...RECIPES];
+
+        this.orderSequence = [];
+
+        for (let i = 0; i < this.totalOrders; i++) {
+            const index = Phaser.Math.Between(0, pool.length - 1);
+            const recipe = pool.splice(index, 1)[0];
+
+            this.orderSequence.push(recipe);
+
+            if (pool.length === 0 && i < this.totalOrders - 1) {
+                pool.push(...RECIPES);
+            }
+        }
+    }
 
     startNextOrder() {
         this.locked = false;
@@ -781,11 +683,8 @@ export default class Grill extends Phaser.Scene {
             return;
         }
 
-        const recipeIndex =
-            (this.orderNumber - 1) % RECIPES.length;
-
         this.currentRecipe =
-            RECIPES[recipeIndex];
+            this.orderSequence[this.orderNumber - 1];
 
         this.selected = {
             waffle: null,
@@ -793,13 +692,15 @@ export default class Grill extends Phaser.Scene {
             finish: null
         };
 
-        this.timeLeft = Math.max(
-            15,
+        this.maxTime = Math.max(
+            16,
             30 -
             Math.floor(
                 (this.orderNumber - 1) / 2
-            ) * 3
+            ) * 2
         );
+
+        this.timeLeft = this.maxTime;
 
         this.orderText.setText(
             `ORDER ${this.orderNumber} / ${this.totalOrders}`
@@ -813,25 +714,27 @@ export default class Grill extends Phaser.Scene {
             this.currentRecipe.description
         );
 
+        this.difficultyText.setText(
+            `DIFFICULTY ${this.currentRecipe.difficulty} / 3`
+        );
+
         this.timerText.setText(
-            `00:${String(
-                this.timeLeft
-            ).padStart(2, '0')}`
+            this.formatTime(this.timeLeft)
         );
 
         this.timerText.setColor('#D71920');
 
-        this.timerPill.setFillStyle(
-            COLORS.WHITE
-        );
+        this.timerPill
+            .setFillStyle(COLORS.WHITE)
+            .setStrokeStyle(4, COLORS.RED_DEEP);
 
+        this.resetOptions();
         this.updateSelectionText();
         this.updateServeButton();
-        this.resetOptions();
 
-        if (this.timer) {
-            this.timer.remove(false);
-        }
+        this.updateLevel();
+
+        this.stopTimer();
 
         this.timer = this.time.addEvent({
             delay: 1000,
@@ -841,15 +744,114 @@ export default class Grill extends Phaser.Scene {
         });
     }
 
-    // ============================================================
-    // RESET OPTIONS
-    // ============================================================
+    selectIngredient(type, label, button, text) {
+        if (this.locked) return;
 
-    resetOptions() {
-        if (!this.optionButtons) {
-            return;
+        this.optionButtons
+            .filter(option => option.type === type)
+            .forEach(option => {
+                option.button.setFillStyle(COLORS.WHITE);
+                option.button.setStrokeStyle(
+                    2,
+                    COLORS.RED_DEEP
+                );
+
+                option.button.setScale(1);
+                option.text.setColor('#111111');
+
+                if (option.check) {
+                    option.check.setVisible(false);
+                }
+            });
+
+        button.setFillStyle(COLORS.RED_DEEP);
+        button.setStrokeStyle(4, COLORS.WHITE);
+        button.setScale(1.02);
+
+        text.setColor('#FFFFFF');
+
+        const selectedOption =
+            this.optionButtons.find(
+                option =>
+                    option.type === type &&
+                    option.label === label
+            );
+
+        if (selectedOption) {
+            selectedOption.check.setColor('#FFFFFF');
+            selectedOption.check.setVisible(true);
         }
 
+        this.selected[type] = label;
+
+        this.updateSelectionText();
+        this.updateServeButton();
+    }
+
+    updateSelectionText() {
+        const waffle =
+            this.selected.waffle || 'WAFFLE';
+
+        const chicken =
+            this.selected.chicken || 'CHICKEN';
+
+        const finish =
+            this.selected.finish || 'FINISH';
+
+        this.selectedText.setText(
+            `${waffle}  +  ${chicken}  +  ${finish}`
+        );
+    }
+
+    updateServeButton() {
+        const ready = this.isBuildComplete();
+
+        if (ready) {
+            this.serveButton.setFillStyle(
+                COLORS.YELLOW
+            );
+
+            this.serveButton.setStrokeStyle(
+                5,
+                COLORS.WHITE
+            );
+
+            this.serveText.setColor('#111111');
+
+            this.serveSubtext.setText(
+                'TAP TO SERVE • LOCK IN YOUR BUILD'
+            );
+
+            this.serveSubtext.setColor('#111111');
+        } else {
+            this.serveButton.setFillStyle(
+                COLORS.WHITE
+            );
+
+            this.serveButton.setStrokeStyle(
+                5,
+                COLORS.RED_DEEP
+            );
+
+            this.serveText.setColor('#D71920');
+
+            this.serveSubtext.setText(
+                'SELECT ALL THREE INGREDIENTS'
+            );
+
+            this.serveSubtext.setColor('#777777');
+        }
+    }
+
+    isBuildComplete() {
+        return Boolean(
+            this.selected.waffle &&
+            this.selected.chicken &&
+            this.selected.finish
+        );
+    }
+
+    resetOptions() {
         this.optionButtons.forEach(option => {
             option.button.setFillStyle(
                 COLORS.WHITE
@@ -861,7 +863,6 @@ export default class Grill extends Phaser.Scene {
             );
 
             option.button.setScale(1);
-
             option.text.setColor('#111111');
 
             if (option.check) {
@@ -870,44 +871,46 @@ export default class Grill extends Phaser.Scene {
         });
     }
 
-    // ============================================================
-    // TIMER
-    // ============================================================
-
     tick() {
-        if (this.locked) {
-            return;
-        }
+        if (this.locked) return;
 
         this.timeLeft--;
 
         this.timerText.setText(
-            `00:${String(
+            this.formatTime(
                 Math.max(0, this.timeLeft)
-            ).padStart(2, '0')}`
+            )
         );
 
-        if (this.timeLeft <= 5) {
-            this.timerText.setColor('#FFFFFF');
-            this.timerPill.setFillStyle(
-                COLORS.RED_DEEP
-            );
+        const ratio =
+            this.timeLeft / this.maxTime;
 
-            this.timerPill.setStrokeStyle(
-                4,
-                COLORS.WHITE
-            );
+        if (ratio <= 0.2) {
+            this.timerText.setColor('#FFFFFF');
+
+            this.timerPill
+                .setFillStyle(COLORS.RED_DEEP)
+                .setStrokeStyle(4, COLORS.WHITE);
+
+            this.tweens.add({
+                targets: this.timerPill,
+                scaleX: 1.04,
+                scaleY: 1.04,
+                duration: 150,
+                yoyo: true
+            });
+        } else if (ratio <= 0.4) {
+            this.timerText.setColor('#D71920');
+
+            this.timerPill
+                .setFillStyle(COLORS.YELLOW)
+                .setStrokeStyle(4, COLORS.RED_DEEP);
         } else {
             this.timerText.setColor('#D71920');
 
-            this.timerPill.setFillStyle(
-                COLORS.WHITE
-            );
-
-            this.timerPill.setStrokeStyle(
-                4,
-                COLORS.RED_DEEP
-            );
+            this.timerPill
+                .setFillStyle(COLORS.WHITE)
+                .setStrokeStyle(4, COLORS.RED_DEEP);
         }
 
         if (this.timeLeft <= 0) {
@@ -915,23 +918,20 @@ export default class Grill extends Phaser.Scene {
         }
     }
 
-    // ============================================================
-    // SUBMIT ORDER
-    // ============================================================
-
     submitOrder() {
-        if (this.locked) {
-            return;
-        }
+        if (this.locked) return;
 
-        if (
-            !this.selected.waffle ||
-            !this.selected.chicken ||
-            !this.selected.finish
-        ) {
+        this.attempts++;
+
+        if (!this.isBuildComplete()) {
             this.flashMessage(
                 'BUILD THE COMPLETE ORDER!',
-                '#FFFFFF'
+                '#D71920'
+            );
+
+            this.cameras.main.shake(
+                100,
+                0.003
             );
 
             return;
@@ -946,24 +946,63 @@ export default class Grill extends Phaser.Scene {
                 this.currentRecipe.finish;
 
         if (!correct) {
+            this.mistakes++;
             this.combo = 0;
+
+            this.satisfaction = Math.max(
+                0,
+                this.satisfaction - 12
+            );
 
             this.comboText.setText(
                 'COMBO x0'
             );
 
+            this.updateSatisfaction();
+
             this.flashMessage(
                 'WRONG BUILD!',
-                '#FFFFFF'
+                '#D71920'
             );
 
             this.shakeKitchen();
 
+            this.locked = true;
+
+            this.stopTimer();
+
+            this.time.delayedCall(
+                950,
+                () => {
+                    this.startNextOrder();
+                }
+            );
+
             return;
         }
 
+        this.correctOrders++;
+
+        const speedRatio =
+            this.timeLeft / this.maxTime;
+
+        let quality = 'GOOD';
+
+        if (speedRatio >= 0.65) {
+            quality = 'PERFECT';
+        } else if (speedRatio >= 0.35) {
+            quality = 'GREAT';
+        }
+
+        const basePoints = 500;
+
         const speedBonus =
-            this.timeLeft * 25;
+            Math.round(
+                this.timeLeft * 30
+            );
+
+        const difficultyBonus =
+            this.currentRecipe.difficulty * 100;
 
         const comboMultiplier =
             Math.max(
@@ -971,36 +1010,58 @@ export default class Grill extends Phaser.Scene {
                 this.combo + 1
             );
 
-        const points =
-            (500 + speedBonus) *
-            comboMultiplier;
+        const points = Math.round(
+            (
+                basePoints +
+                speedBonus +
+                difficultyBonus
+            ) * comboMultiplier
+        );
 
         this.score += points;
 
         this.combo++;
 
+        this.bestCombo = Math.max(
+            this.bestCombo,
+            this.combo
+        );
+
+        this.satisfaction = Math.min(
+            100,
+            this.satisfaction +
+            (quality === 'PERFECT' ? 4 : 2)
+        );
+
+        this.addXP(
+            100 +
+            this.currentRecipe.difficulty * 25
+        );
+
         this.scoreNumberText.setText(
-            String(this.score).padStart(4, '0')
+            this.formatScore(this.score)
         );
 
         this.comboText.setText(
             `COMBO x${this.combo}`
         );
 
+        this.updateSatisfaction();
+
         this.locked = true;
 
-        if (this.timer) {
-            this.timer.remove(false);
-        }
+        this.stopTimer();
 
         this.flashMessage(
-            `PERFECT! +${points}`,
-            '#FFFFFF'
+            `${quality}! +${points}`,
+            quality === 'PERFECT'
+                ? '#FFD43B'
+                : '#D71920'
         );
 
         if (this.combo >= 3) {
             this.time.delayedCall(
-                500,
+                350,
                 () => {
                     this.flashMessage(
                         'HAHZ MODE!',
@@ -1011,71 +1072,138 @@ export default class Grill extends Phaser.Scene {
         }
 
         this.time.delayedCall(
-            1300,
+            1100,
             () => {
                 this.startNextOrder();
             }
         );
     }
 
-    // ============================================================
-    // FAILED ORDER
-    // ============================================================
-
     orderFailed(reason) {
-        if (this.locked) {
-            return;
-        }
+        if (this.locked) return;
 
         this.locked = true;
 
-        if (this.timer) {
-            this.timer.remove(false);
-        }
+        this.stopTimer();
+
+        this.mistakes++;
 
         this.combo = 0;
+
+        this.satisfaction = Math.max(
+            0,
+            this.satisfaction - 10
+        );
 
         this.comboText.setText(
             'COMBO x0'
         );
 
+        this.updateSatisfaction();
+
         this.flashMessage(
             reason,
-            '#FFFFFF'
+            '#D71920'
         );
 
+        this.shakeKitchen();
+
         this.time.delayedCall(
-            1200,
+            1000,
             () => {
                 this.startNextOrder();
             }
         );
     }
 
-    // ============================================================
-    // MESSAGE OVERLAY
-    // ============================================================
+    addXP(amount) {
+        this.xp += amount;
 
-    flashMessage(message, color) {
-        const { width, height } =
-            this.scale;
+        const newLevel =
+            Math.floor(this.xp / 300) + 1;
+
+        if (newLevel > this.level) {
+            this.level = newLevel;
+
+            this.flashMessage(
+                `LEVEL ${this.level}!`,
+                '#FFD43B'
+            );
+
+            this.tweens.add({
+                targets: this.levelText,
+                scaleX: 1.25,
+                scaleY: 1.25,
+                duration: 180,
+                yoyo: true
+            });
+        }
+
+        this.level = Math.min(
+            10,
+            this.level
+        );
+
+        this.levelText.setText(
+            `LEVEL ${this.level}`
+        );
+    }
+
+    updateLevel() {
+        this.levelText.setText(
+            `LEVEL ${this.level}`
+        );
+    }
+
+    updateSatisfaction() {
+        if (!this.satisfactionBar) {
+            return;
+        }
+
+        const maxWidth =
+            this.scale.width - 120;
+
+        const barWidth =
+            maxWidth *
+            (this.satisfaction / 100);
+
+        this.satisfactionBar.width =
+            Math.max(0, barWidth);
+
+        if (this.satisfaction > 65) {
+            this.satisfactionBar.setFillStyle(
+                COLORS.GREEN
+            );
+        } else if (this.satisfaction > 35) {
+            this.satisfactionBar.setFillStyle(
+                COLORS.YELLOW
+            );
+        } else {
+            this.satisfactionBar.setFillStyle(
+                COLORS.RED_DEEP
+            );
+        }
+    }
+
+    flashMessage(message, color = '#D71920') {
+        const { width, height } = this.scale;
 
         const overlay =
             this.add.rectangle(
                 width / 2,
                 height / 2,
-                width - 70,
-                250,
+                width - 80,
+                230,
                 COLORS.WHITE,
-                1
+                0.98
             );
 
-        overlay.setStrokeStyle(
-            7,
-            COLORS.RED_DEEP
-        );
-
-        overlay.setDepth(100);
+        overlay
+            .setStrokeStyle(
+                7,
+                COLORS.RED_DEEP
+            )
+            .setDepth(100);
 
         const text =
             this.add.text(
@@ -1084,45 +1212,30 @@ export default class Grill extends Phaser.Scene {
                 message,
                 {
                     fontFamily: 'Arial Black',
-                    fontSize: 48,
+                    fontSize: 43,
                     color,
                     align: 'center',
                     wordWrap: {
-                        width: width - 150
-                    },
-                    stroke: '#760000',
-                    strokeThickness: 3
+                        width: width - 130
+                    }
                 }
             )
             .setOrigin(0.5)
             .setDepth(101);
 
-        // For white success/failure text,
-        // keep the brand red readable.
-        if (color === '#FFFFFF') {
-            text.setColor('#D71920');
-            text.setStrokeStyle(0, 0x000000, 0);
-        }
-
         this.tweens.add({
-            targets: [
-                overlay,
-                text
-            ],
+            targets: [overlay, text],
             alpha: 0,
-            duration: 750,
-            delay: 500,
-
+            scaleX: 1.04,
+            scaleY: 1.04,
+            duration: 650,
+            delay: 350,
             onComplete: () => {
                 overlay.destroy();
                 text.destroy();
             }
         });
     }
-
-    // ============================================================
-    // SCREEN SHAKE
-    // ============================================================
 
     shakeKitchen() {
         this.cameras.main.shake(
@@ -1131,22 +1244,49 @@ export default class Grill extends Phaser.Scene {
         );
     }
 
-    // ============================================================
-    // FINISH
-    // ============================================================
-
-    finishGame() {
+    stopTimer() {
         if (this.timer) {
             this.timer.remove(false);
             this.timer = null;
         }
+    }
+
+    formatTime(seconds) {
+        return `00:${String(
+            Math.max(0, seconds)
+        ).padStart(2, '0')}`;
+    }
+
+    formatScore(score) {
+        return String(score).padStart(5, '0');
+    }
+
+    finishGame() {
+        this.stopTimer();
+
+        const accuracy =
+            this.attempts > 0
+                ? Math.round(
+                    (
+                        this.correctOrders /
+                        this.attempts
+                    ) * 100
+                )
+                : 0;
 
         this.scene.start(
             'Results',
             {
                 score: this.score,
-                orders: this.totalOrders,
-                combo: this.combo
+                ordersServed: this.correctOrders,
+                totalOrders: this.totalOrders,
+                finalCombo: this.combo,
+                bestCombo: this.bestCombo,
+                mistakes: this.mistakes,
+                accuracy,
+                satisfaction: this.satisfaction,
+                level: this.level,
+                xp: this.xp
             }
         );
     }
